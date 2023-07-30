@@ -1,10 +1,11 @@
 package file
 
 import (
-	"github.com/apus-run/sea-kit/conf"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"project-layout/pkg/conf"
 )
 
 const (
@@ -26,7 +27,7 @@ const (
     "data":{
         "database":{
             "driver":"mysql",
-            "source":"root:root@tcp(127.0.0.1:3306)/karta_id?parseTime=true"
+            "source":"root:root@tcp(127.0.0.1:3306)/test?parseTime=true"
         }
     },
 	"endpoints":[
@@ -63,7 +64,7 @@ const (
     "data":{
         "database":{
             "driver":"mysql",
-            "source":"root:root@tcp(127.0.0.1:3306)/karta_id?parseTime=true"
+            "source":"root:root@tcp(127.0.0.1:3306)/test?parseTime=true"
         }
     },
 	"endpoints":[

@@ -11,18 +11,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-var _ Conf = (*conf)(nil)
+var (
+	_ Conf = (*conf)(nil)
+
+	//Get 读取配置项 fileName 文件名, key 配置项
+	Get func(fileName string, key string) any
+)
 
 type Conf interface {
+	// Load 加载配置文件
 	Load()
+	// Watch 监听配置文件变化
 	Watch()
 
+	//File name 文件名
 	File(name string) *viper.Viper
+
+	Get(fileName string, key string) any
 }
 
 type conf struct {
 	opts *Options
-	// files   map[string]*viper.Viper
+
 	files sync.Map
 }
 
@@ -33,8 +43,8 @@ func New(opts ...Option) Conf {
 	}
 
 	return &conf{
-		opts: options,
-		// files: make(map[string]*viper.Viper),
+		opts:  options,
+		files: sync.Map{},
 	}
 }
 
@@ -60,11 +70,11 @@ func (c *conf) Load() {
 
 			name := strings.TrimSuffix(path.Base(f.Key), filepath.Ext(f.Key))
 			log.Printf("文件名: %s", name)
-			// c.files[name] = v
 			c.files.Store(name, v)
 		}
 	}
 
+	Get = c.Get
 }
 
 func (c *conf) Watch() {
@@ -76,20 +86,15 @@ func (c *conf) Watch() {
 		v.WatchConfig()
 		return true
 	})
-	//for _, v := range c.files {
-	//	v.OnConfigChange(func(e fsnotify.Event) {
-	//		log.Printf("Config file changed: %s", e.Name)
-	//	})
-	//	v.WatchConfig()
-	//}
 }
 
-// File 根据文件名获取对应配置对象
-// 如果要读取 foo.yaml 配置，可以 File("foo").Get("bar")
 func (c *conf) File(name string) *viper.Viper {
 	if v, ok := c.files.Load(name); ok {
 		return v.(*viper.Viper)
 	}
-	// return c.files[name]
 	return nil
+}
+
+func (c *conf) Get(fileName string, key string) any {
+	return c.File(fileName).Get(key)
 }
