@@ -70,12 +70,12 @@ func TestDelete(t *testing.T) {
 
 func TestDeleteV1(t *testing.T) {
 	list := []int64{10, 20, 30, 40, 50}
-	list = DeleteV1(list, 4)
+	list = DeleteV1(list, 3)
 	t.Logf("%v \n", list)
 }
 
 func TestDeleteV2(t *testing.T) {
 	list := []int64{10, 20, 30, 40, 50}
-	list = DeleteV1(list, 3)
+	list = DeleteV2(list, 3)
 	t.Logf("%v \n", list)
 }

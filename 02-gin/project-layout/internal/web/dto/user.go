@@ -12,3 +12,9 @@ type UserResponse struct {
 	Username string `json:"username"`
 	Token    string `json:"token"`
 }
+
+type RegisterRequest struct {
+	Username        string `json:"username" binding:"required"`
+	Password        string `json:"password" binding:"required, password"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required, password"`
+}

@@ -2,6 +2,7 @@ package conf
 
 import (
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -69,7 +70,7 @@ func (c *conf) Load() {
 			v.AutomaticEnv()
 
 			name := strings.TrimSuffix(path.Base(f.Key), filepath.Ext(f.Key))
-			log.Printf("文件名: %s", name)
+			log.Printf("配置文件名: %s", name)
 			c.files.Store(name, v)
 		}
 	}
@@ -97,4 +98,15 @@ func (c *conf) File(name string) *viper.Viper {
 
 func (c *conf) Get(fileName string, key string) any {
 	return c.File(fileName).Get(key)
+}
+
+// GetEnvString get value from env.
+// application parameters take precedence over environment variables
+// env := GetEnvString("APP_ENV", "")
+func GetEnvString(key string, defaultValue string) string {
+	val, ok := os.LookupEnv(key)
+	if !ok {
+		return defaultValue
+	}
+	return val
 }

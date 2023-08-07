@@ -34,15 +34,11 @@ func DeleteV2(src []int64, index int) []int64 {
 	if index < 0 || index >= length {
 		return nil
 	}
-
-	j := 0
-	for i, v := range src {
-		// fmt.Printf("value = %d, value-addr = %x, slice-addr = %x\n", v, &v, &src[i])
-		if i != index {
-			src[j] = v
-			j++
-		}
+	
+	// 从 index+1 开始，将后面的元素向前移动一位
+	for i := index + 1; i < length; i++ {
+		src[i-1] = src[i]
 	}
-	src = src[:j]
-	return src
+
+	return src[:length-1]
 }

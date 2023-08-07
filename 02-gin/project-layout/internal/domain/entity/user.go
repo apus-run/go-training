@@ -1,11 +1,10 @@
 package entity
 
 import (
-	"regexp"
-
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
+	"regexp"
+	"time"
 )
 
 var ErrEmptyUserID = errors.New("user id is required")
@@ -23,7 +22,11 @@ type User struct {
 	Avatar   string
 	Email    string
 	Password string
-	Salt     string
+	Phone    string
+
+	CreatedTime time.Time  // 创建时间
+	UpdatedTime time.Time  // 更新时间
+	DeletedTime *time.Time // 删除时间
 }
 
 func (u *User) Validate() error {

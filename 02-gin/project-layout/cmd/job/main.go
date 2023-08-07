@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
+	"project-layout/cmd/job/cron"
 )
 
 func main() {
-	if err := err != nil {
-		logrus.Fatal(err)
+	if err := cron.Run(); err != nil {
+
 	}
 }

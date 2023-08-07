@@ -7,15 +7,17 @@ import (
 )
 
 type User struct {
-	ID       uint64
+	ID uint64 `gorm:"primaryKey, autoIncrement"`
+
 	Name     string
 	Avatar   string
-	Email    string
+	Email    string `gorm:"uniqueIndex"`
 	Password string
-	Salt     string
+	Phone    string
 
-	CreateTime uint64 // time second
-	UpdateTime uint64 // time second
+	CreatedTime uint64 // 创建时间
+	UpdatedTime uint64 // 更新时间
+	DeletedTime uint64 `gorm:"index"` // 删除时间
 }
 
 // The TableName method returns the name of the data table that the struct is mapped to.
@@ -30,13 +32,12 @@ func (u *User) ToEntity() (*entity.User, error) {
 		return user, nil
 	}
 
-	return &entity.User{
-		ID:       u.ID,
-		Name:     u.Name,
-		Email:    u.Email,
-		Password: u.Password,
-		Salt:     u.Salt,
-	}, nil
+	user.ID = u.ID
+	user.Name = u.Name
+	user.Email = u.Email
+	user.Password = u.Password
+
+	return user, nil
 }
 
 // FromEntity converts a entity to a DO.
@@ -52,7 +53,6 @@ func (u *User) FromEntity(userEntity *entity.User) error {
 	u.Name = userEntity.Name
 	u.Email = userEntity.Email
 	u.Password = userEntity.Password
-	u.Salt = userEntity.Salt
 
 	return nil
 }

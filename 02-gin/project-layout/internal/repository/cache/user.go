@@ -27,12 +27,18 @@ type userCache struct {
 	data *repository.Data
 }
 
+func NewUserCache(data *repository.Data) UserCache {
+	return &userCache{
+		data: data,
+	}
+}
+
 func (u *userCache) Set(ctx context.Context, user entity.User) error {
 	data, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
-	res, err := u.data.RDB.Set(ctx, fmt.Sprintf("article_%d", user.ID), string(data), time.Hour).Result()
+	res, err := u.data.RDB.Set(ctx, fmt.Sprintf("user_%d", user.ID), string(data), time.Hour).Result()
 	if res != "OK" {
 		return ErrNotFound
 	}
@@ -40,7 +46,7 @@ func (u *userCache) Set(ctx context.Context, user entity.User) error {
 }
 
 func (u *userCache) Get(ctx context.Context, id uint64) (entity.User, error) {
-	data, err := u.data.RDB.Get(ctx, fmt.Sprintf("article_%d", id)).Bytes()
+	data, err := u.data.RDB.Get(ctx, fmt.Sprintf("user_%d", id)).Bytes()
 	if err != nil {
 		return entity.User{}, err
 	}

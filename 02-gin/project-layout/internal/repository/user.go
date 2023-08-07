@@ -3,12 +3,11 @@ package repository
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
-
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/repository/cache"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/repository/dao/model"
+	"project-layout/pkg/log"
 )
 
 var _ UserRepo = (*userRepo)(nil)
@@ -23,10 +22,10 @@ type UserRepo interface {
 	// Remove ...
 	Remove(ctx context.Context, userEntity *entity.User) error
 
+	// FindByID ...
+	FindByID(ctx context.Context, id uint64) (*entity.User, error)
 	// Find ...
-	Find(ctx context.Context, id uint64) (*entity.User, error)
-	// FindByUserID ...
-	FindByUserID(ctx context.Context, userID string) ([]*entity.User, error)
+	Find(ctx context.Context, userID string) ([]entity.User, error)
 	// FindUserPage ...
 	FindUserPage(ctx context.Context, id uint, page int64, size int64) (*entity.User, uint, bool, error)
 	// FindUserPageByUserId ...
@@ -37,10 +36,10 @@ type userRepo struct {
 	dao   dao.UserDAO
 	cache cache.UserCache
 
-	log *logrus.Logger
+	log *log.Logger
 }
 
-func NewUserRepo(dao dao.UserDAO, cache cache.UserCache, logger *logrus.Logger) UserRepo {
+func NewUserRepo(dao dao.UserDAO, cache cache.UserCache, logger *log.Logger) UserRepo {
 	return &userRepo{
 		dao:   dao,
 		cache: cache,
@@ -99,7 +98,7 @@ func (ur *userRepo) Remove(ctx context.Context, user *entity.User) error {
 	return nil
 }
 
-func (ur *userRepo) Find(ctx context.Context, id uint64) (*entity.User, error) {
+func (ur *userRepo) FindByID(ctx context.Context, id uint64) (*entity.User, error) {
 	ur.log.Info("find user")
 
 	res, err := ur.cache.Get(ctx, id)
@@ -107,7 +106,7 @@ func (ur *userRepo) Find(ctx context.Context, id uint64) (*entity.User, error) {
 		return &res, err
 	}
 
-	userModel, err := ur.dao.Get(ctx, id)
+	userModel, err := ur.dao.FindByID(ctx, id)
 	if err != nil {
 		return &entity.User{}, err
 	}
@@ -126,7 +125,7 @@ func (ur *userRepo) Find(ctx context.Context, id uint64) (*entity.User, error) {
 	return newEntity, nil
 }
 
-func (ur *userRepo) FindByUserID(ctx context.Context, userID string) ([]*entity.User, error) {
+func (ur *userRepo) Find(ctx context.Context, userID string) ([]entity.User, error) {
 	ur.log.Info("find user by user id")
 	return nil, nil
 }

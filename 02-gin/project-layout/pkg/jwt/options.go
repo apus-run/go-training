@@ -1,28 +1,23 @@
-package ginx
+package jwt
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
+	"time"
 )
 
 // Option is config option.
 type Option func(*Options) error
 
 type Options struct {
-	mode         string // dev or prod
-	addr         string
-	port         string
-	maxPingCount int
+	secretKey string
+	userId    uint64
+	expireAt  time.Time
 }
 
 // DefaultOptions .
 func DefaultOptions() *Options {
 	return &Options{
-		mode:         "dev",
-		addr:         "localhost",
-		port:         "8080",
-		maxPingCount: 5,
+		expireAt: time.Now(),
 	}
 }
 
@@ -37,46 +32,35 @@ func Apply(opts ...Option) *Options {
 	return options
 }
 
-// WithMode .
-func WithMode(mode string) Option {
+// WithSecretKey .
+func WithSecretKey(secretKey string) Option {
 	return func(o *Options) error {
-		if strings.ToLower(mode) != "dev" && strings.ToLower(mode) != "prod" {
-			return errors.New("mode must be dev or prod")
+		if secretKey == "" {
+			return errors.New("secretKey can not be empty")
 		}
-		o.mode = mode
+		o.secretKey = secretKey
 		return nil
 	}
 }
 
-// WithAddr .
-func WithAddr(addr string) Option {
+// WithUserId .
+func WithUserId(userId uint64) Option {
 	return func(o *Options) error {
-		if addr == "" {
-			return errors.New("addr can not be empty")
+		if userId == 0 {
+			return errors.New("userId can not be empty")
 		}
-		o.addr = addr
+		o.userId = userId
 		return nil
 	}
 }
 
-// WithPort .
-func WithPort(port string) Option {
+// WithExpireAt .
+func WithExpireAt(expireAt time.Time) Option {
 	return func(o *Options) error {
-		if port == "" {
-			return errors.New("port can not be empty")
+		if expireAt.IsZero() {
+			return errors.New("expireAt can not be empty")
 		}
-		o.port = port
-		return nil
-	}
-}
-
-// WithMaxPingCount .
-func WithMaxPingCount(maxPingCount int) Option {
-	return func(o *Options) error {
-		if maxPingCount <= 0 {
-			return errors.New("maxPingCount must be greater than 0")
-		}
-		o.maxPingCount = maxPingCount
+		o.expireAt = expireAt
 		return nil
 	}
 }

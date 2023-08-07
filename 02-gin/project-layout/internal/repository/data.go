@@ -1,13 +1,13 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"project-layout/internal/repository/dao/model"
 
 	"project-layout/pkg/conf"
+	"project-layout/pkg/log"
 )
 
 type Data struct {
@@ -16,17 +16,28 @@ type Data struct {
 }
 
 // NewData return a new Data
-func NewData(db *gorm.DB, rdb *redis.Client) (*Data, func(), error) {
+func NewData(db *gorm.DB, rdb *redis.Client, log *log.Logger) (*Data, func()) {
 	data := &Data{
 		DB:  db,
 		RDB: rdb,
 	}
 
 	cleanup := func() {
-		log.Println("closing the data resources")
+		log.Info("closing the data resources")
+		m, err := data.DB.DB()
+		if err != nil {
+			log.Error(err.Error())
+		}
+		if err := m.Close(); err != nil {
+			log.Error(err.Error())
+		}
+
+		if err := data.RDB.Close(); err != nil {
+			log.Error(err.Error())
+		}
 	}
 
-	return data, cleanup, nil
+	return data, cleanup
 }
 
 func NewDB() *gorm.DB {
@@ -37,14 +48,29 @@ func NewDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect database")
 	}
+
+	// Auto migrate
+	InitDB(db)
+
 	return db
 }
 
+func InitDB(db *gorm.DB) {
+	if err := db.AutoMigrate(
+		&model.User{},
+	); err != nil {
+		panic(err)
+	}
+}
+
 func NewRDB() *redis.Client {
+	addr := conf.Get("config", "data.redis.addr").(string)
+	pwd := conf.Get("config", "data.redis.password").(string)
+	defDB := conf.Get("config", "data.redis.db").(int)
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // Update with your address
-		Password: "",               // no password set
-		DB:       0,                // use default DB
+		Addr:     addr,
+		Password: pwd,
+		DB:       defDB,
 	})
 
 	return rdb

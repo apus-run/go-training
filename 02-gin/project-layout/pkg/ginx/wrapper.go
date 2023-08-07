@@ -53,20 +53,6 @@ type Response struct {
 	Details []string    `json:"details,omitempty"`
 }
 
-type Pagination struct {
-	// pageNumber 当前页
-	pageNumber int `json:"page_number"`
-	// pageSize 分页数
-	pageSize int `json:"page_size"`
-	// total means total page count
-	total int `json:"total"`
-	// data 数据
-	data []interface{} `json:"data"`
-	// totalPages 总页数
-	totalPages int  `json:"total_pages,omitempty"`
-	hasNext    bool `json:"has_next,omitempty"`
-}
-
 // JSON returns JSON response
 // e.x. {"code":<code>, "msg":<msg>, "data":<data>, "details":<details>}
 func (c *Context) JSON(httpStatus int, resp Response) {
@@ -75,10 +61,10 @@ func (c *Context) JSON(httpStatus int, resp Response) {
 
 // JSONOK returns JSON response with successful business code and data
 // e.x. {"code":0, "msg":"成功", "data":<data>}
-func (c *Context) JSONOK(data interface{}) {
+func (c *Context) JSONOK(msg string, data any) {
 	j := new(Response)
 	j.Code = CodeOK
-	j.Msg = "ok"
+	j.Msg = msg
 
 	if data == nil {
 		j.Data = gin.H{}
@@ -91,7 +77,7 @@ func (c *Context) JSONOK(data interface{}) {
 
 // JSONE returns JSON response with failure business code ,msg and data
 // e.x. {"code":<code>, "msg":<msg>, "data":<data>}
-func (c *Context) JSONE(code int, msg string, data interface{}) {
+func (c *Context) JSONE(code int, msg string, data any) {
 	j := new(Response)
 	j.Code = code
 	j.Msg = msg
@@ -104,17 +90,6 @@ func (c *Context) JSONE(code int, msg string, data interface{}) {
 
 	c.Context.JSON(http.StatusOK, j)
 	return
-}
-
-// JSONPage returns JSON response with pagination
-// e.x. {"code":<code>, "msg":<msg>, "data":<data>, "pagination":<pagination>}
-// <pagination> { "pageNumber":1, "pageSize":20, "total": 9 }
-func (c *Context) JSONPage(data interface{}, p pagination.Pagination) {
-	j := new(ResponsePagination)
-	j.Code = CodeOK
-	j.Data = data
-	j.Pagination = p
-	c.Context.JSON(http.StatusOK, j)
 }
 
 // NotFound 未找到相关路由

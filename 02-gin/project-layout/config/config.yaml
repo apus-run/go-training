@@ -3,8 +3,13 @@ server:
     timeout: 1s
 data:
   database:
+    driver: mysql
     dsn: "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
-  cache:
-    host: ""
+  redis:
+    addr: 127.0.0.1:6379
+    password: ""
+    db: 0
+    read_timeout: 0.2s
+    write_timeout: 0.2s
 jwt:
   secret: "hello"
