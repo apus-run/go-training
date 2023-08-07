@@ -1,4 +1,3 @@
-package entity
+// domain entity
 
-type Entity struct {
-}
+package entity

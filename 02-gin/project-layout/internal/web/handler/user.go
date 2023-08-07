@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"project-layout/internal/domain/entity"
 	"project-layout/internal/web/dto"
 	"project-layout/pkg/jwt"
 	"project-layout/pkg/log"
@@ -30,9 +31,12 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 	}
-	user, err := h.svc.Login(ctx, "username", "password")
+	user, err := h.svc.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
+	}
+	if err == service.ErrInvalidUserOrPassword {
+		ctx.JSONE(http.StatusOK, "用户名或者密码不正确，请重试", nil)
 	}
 
 	expireAt := time.Now().Add(time.Hour * 24 * 90)
@@ -53,14 +57,26 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 		Token:    token,
 		ExpireAt: expireAt,
 	})
-
 }
 
 func (h *UserHandler) Register(ctx *ginx.Context) {
-	var req dto.UserRequest
+	var req dto.RegisterRequest
 	err := ctx.Bind(&req)
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 	}
-	ctx.JSONOK("注册成功", req)
+
+	_, err = h.svc.Register(
+		ctx.Request.Context(),
+		entity.User{
+			Email:    req.Email,
+			Password: req.ConfirmPassword,
+		},
+	)
+
+	if err != nil {
+		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
+	}
+
+	ctx.JSONOK("注册成功", nil)
 }

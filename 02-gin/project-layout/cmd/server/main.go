@@ -45,7 +45,7 @@ func main() {
 	ud := dao.NewUserDAO(data)
 	uc := cache.NewUserCache(data)
 
-	ur := repository.NewUserRepo(ud, uc, logger)
+	ur := repository.NewUserRepository(ud, uc, logger)
 	us := service.NewUserService(ur, logger)
 	uh := handler.NewUserHandler(us, logger)
 

@@ -13,11 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         && rm -rf /var/lib/apt/lists/ \
         && apt-get autoremove -y && apt-get autoclean -y
 
-COPY --from=builder /src/bin /app
+COPY --from=builder /cmd/server /app
 
 WORKDIR /app
 
 EXPOSE 8000
 VOLUME /config
 
-CMD ["./server", "-conf", "../config"]
+CMD ["/app/server", "-conf", "../config"]

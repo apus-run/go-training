@@ -6,14 +6,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/repository"
 )
 
+// ErrKeyNotExist 因为我们目前还是只有一个实现，所以可以保持用别名
+var ErrKeyNotExist = redis.Nil
+
 var _ UserCache = (*userCache)(nil)
-var ErrNotFound = errors.New("插入失败")
 
 type UserCache interface {
 	// Set 理论上来说，UserCache 也应该有自己的 User 定义
@@ -25,11 +27,15 @@ type UserCache interface {
 
 type userCache struct {
 	data *repository.Data
+
+	// 缓存过期时间
+	expire time.Duration
 }
 
 func NewUserCache(data *repository.Data) UserCache {
 	return &userCache{
-		data: data,
+		data:   data,
+		expire: time.Minute * 15,
 	}
 }
 
@@ -38,19 +44,23 @@ func (u *userCache) Set(ctx context.Context, user entity.User) error {
 	if err != nil {
 		return err
 	}
-	res, err := u.data.RDB.Set(ctx, fmt.Sprintf("user_%d", user.ID), string(data), time.Hour).Result()
-	if res != "OK" {
-		return ErrNotFound
-	}
-	return err
+	key := u.key(user.ID)
+	return u.data.RDB.Set(ctx, key, string(data), u.expire).Err()
 }
 
 func (u *userCache) Get(ctx context.Context, id uint64) (entity.User, error) {
-	data, err := u.data.RDB.Get(ctx, fmt.Sprintf("user_%d", id)).Bytes()
+	key := u.key(id)
+	data, err := u.data.RDB.Get(ctx, key).Bytes()
 	if err != nil {
 		return entity.User{}, err
 	}
+
+	// 反序列化回来
 	var art entity.User
 	err = json.Unmarshal(data, &art)
 	return art, err
+}
+
+func (u *userCache) key(id uint64) string {
+	return fmt.Sprintf("user:info:%d", id)
 }

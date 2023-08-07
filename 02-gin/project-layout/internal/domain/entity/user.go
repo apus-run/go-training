@@ -46,13 +46,13 @@ func (u *User) Validate() error {
 	return nil
 }
 
-// HashPassword 密码加密
-func (u *User) HashPassword(password string) (string, error) {
-	b, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+// GenerateHashPassword 密码加密
+func (u *User) GenerateHashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
-	pass := string(b)
+	pass := string(hash)
 	return pass, nil
 }
 

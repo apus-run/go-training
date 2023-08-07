@@ -28,13 +28,13 @@ services:
             - "13306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: 123456
-#    redis:
-#        image: bitnami/redis:latest
-#        restart: always
-#        ports:
-#            - "16379:6379"
-#        environment:
-#            - ALLOW_EMPTY_PASSWORD=yes
+    redis:
+        image: bitnami/redis:latest
+        restart: always
+        ports:
+            - "16379:6379"
+        environment:
+            - ALLOW_EMPTY_PASSWORD=yes
 #        volumes:
 #            - ./script/redis/redis.conf:/usr/local/etc/redis/redis.conf
 #        command: redis-server /usr/local/etc/redis/redis.conf

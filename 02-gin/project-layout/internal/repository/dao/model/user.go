@@ -3,21 +3,24 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
+
 	"project-layout/internal/domain/entity"
 )
+
+var _ Model[entity.User] = (*User)(nil)
 
 type User struct {
 	ID uint64 `gorm:"primaryKey, autoIncrement"`
 
-	Name     string
-	Avatar   string
-	Email    string `gorm:"uniqueIndex"`
-	Password string
-	Phone    string
+	Name     string `gorm:"not null;display:'';comment:'用户名'"`
+	Avatar   string `gorm:"not null;display:'';comment:'头像'"`
+	Email    string `gorm:"uniqueIndex;not null;display:'';comment:'邮箱'"` // 设置邮箱为唯一索引
+	Password string `gorm:"not null;display:'';comment:'密码'"`
+	Phone    string `gorm:"unique;not null;display:'';comment:'手机号'"`
 
-	CreatedTime uint64 // 创建时间
-	UpdatedTime uint64 // 更新时间
-	DeletedTime uint64 `gorm:"index"` // 删除时间
+	CreatedTime int64 `gorm:"autoCreateTime;not null;comment:'创建时间'"`
+	UpdatedTime int64 `gorm:"autoUpdateTime;not null;comment:'更新时间'"`
+	DeletedTime int64 `gorm:"index;not null;display:0;comment:'删除时间'"`
 }
 
 // The TableName method returns the name of the data table that the struct is mapped to.
@@ -25,50 +28,54 @@ func (u *User) TableName() string {
 	return "user"
 }
 
-// ToEntity converts the DO to a entity.
-func (u *User) ToEntity() (*entity.User, error) {
-	user := &entity.User{}
+func (u *User) ToEntity() entity.User {
 	if u == nil {
-		return user, nil
+		return entity.User{}
 	}
-
-	user.ID = u.ID
-	user.Name = u.Name
-	user.Email = u.Email
-	user.Password = u.Password
-
-	return user, nil
+	return entity.User{
+		ID:       u.ID,
+		Name:     u.Name,
+		Avatar:   u.Avatar,
+		Email:    u.Email,
+		Password: u.Password,
+		Phone:    u.Phone,
+	}
 }
 
-// FromEntity converts a entity to a DO.
-func (u *User) FromEntity(userEntity *entity.User) error {
+func (u *User) FromEntity(userEntity entity.User) any {
 	if u == nil {
-		u = &User{}
+		return User{}
 	}
 	if err := userEntity.Validate(); err != nil {
 		return err
 	}
-
-	u.ID = userEntity.ID
-	u.Name = userEntity.Name
-	u.Email = userEntity.Email
-	u.Password = userEntity.Password
-
-	return nil
+	return User{
+		ID:       userEntity.ID,
+		Name:     userEntity.Name,
+		Avatar:   userEntity.Avatar,
+		Email:    userEntity.Email,
+		Password: userEntity.Password,
+		Phone:    userEntity.Phone,
+	}
 }
 
-// MarshalBinary ..
+// MarshalBinary ...
 func (u *User) MarshalBinary() ([]byte, error) {
 	return json.Marshal(u)
 }
 
-// Value ..
+// UnmarshalBinary ...
+func (u *User) UnmarshalBinary(bytes []byte) error {
+	return json.Unmarshal(bytes, u)
+}
+
+// Value ...
 func (u *User) Value() (driver.Value, error) {
 	b, err := json.Marshal(u)
 	return string(b), err
 }
 
-// Scan ..
+// Scan ...
 func (u *User) Scan(input any) error {
 	return json.Unmarshal(input.([]byte), u)
 }
