@@ -34,7 +34,8 @@ services:
         ports:
             - "16379:6379"
         environment:
-            - ALLOW_EMPTY_PASSWORD=yes
+            # - ALLOW_EMPTY_PASSWORD: yes # 可以不设置密码
+            REDIS_PASSWORD: 123456
 #        volumes:
 #            - ./script/redis/redis.conf:/usr/local/etc/redis/redis.conf
 #        command: redis-server /usr/local/etc/redis/redis.conf

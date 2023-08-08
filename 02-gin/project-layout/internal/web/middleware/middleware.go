@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"project-layout/internal/web/handler"
 	"project-layout/pkg/ginx"
 )
 
@@ -25,7 +27,5 @@ func (m *middleware) Load(g *gin.Engine) {
 		c.JSONOK("404", nil)
 	}))
 	// ping server
-	g.GET("/ping", ginx.Handle(func(c *ginx.Context) {
-		//
-	}))
+	g.GET("/ping", handler.Ping())
 }

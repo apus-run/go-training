@@ -2,14 +2,15 @@ package main
 
 import (
 	"flag"
-	"project-layout/internal/web/middleware"
 
+	"project-layout/internal/infra"
 	"project-layout/internal/repository"
 	"project-layout/internal/repository/cache"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/service"
 	"project-layout/internal/web"
 	"project-layout/internal/web/handler"
+	"project-layout/internal/web/middleware"
 	"project-layout/pkg/conf"
 	"project-layout/pkg/conf/file"
 	"project-layout/pkg/ginx"
@@ -39,9 +40,9 @@ func main() {
 	)
 
 	// 核心业务逻辑
-	db := repository.NewDB()
-	rdb := repository.NewRDB()
-	data, cleanup := repository.NewData(db, rdb, logger)
+	db := infra.NewDB()
+	rdb := infra.NewRDB()
+	data, cleanup := infra.NewData(db, rdb, logger)
 	ud := dao.NewUserDAO(data)
 	uc := cache.NewUserCache(data)
 
@@ -51,8 +52,7 @@ func main() {
 
 	// 创建HTTPServer
 	srv := ginx.NewHttpServer(
-		logger,
-		ginx.WithPort("8080"),
+		ginx.WithPort("9000"),
 		ginx.WithMode("prod"),
 	)
 

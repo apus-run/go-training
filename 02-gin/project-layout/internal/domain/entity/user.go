@@ -1,10 +1,11 @@
 package entity
 
 import (
-	"github.com/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 	"regexp"
 	"time"
+
+	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var ErrEmptyUserID = errors.New("user id is required")

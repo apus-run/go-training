@@ -9,7 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"project-layout/internal/domain/entity"
-	"project-layout/internal/repository"
+	"project-layout/internal/infra"
 )
 
 // ErrKeyNotExist 因为我们目前还是只有一个实现，所以可以保持用别名
@@ -26,13 +26,13 @@ type UserCache interface {
 }
 
 type userCache struct {
-	data *repository.Data
+	data *infra.Data
 
 	// 缓存过期时间
 	expire time.Duration
 }
 
-func NewUserCache(data *repository.Data) UserCache {
+func NewUserCache(data *infra.Data) UserCache {
 	return &userCache{
 		data:   data,
 		expire: time.Minute * 15,

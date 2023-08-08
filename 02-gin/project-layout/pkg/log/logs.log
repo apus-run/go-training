@@ -1,0 +1,12 @@
+2023-08-08T14:31:54.749+0800	[34minfo[0m	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/log.go:109	test info
+2023-08-08T14:32:24.986+0800	[34minfo[0m	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/log.go:109	test info
+2023-08-08T14:32:24.986+0800	[31merror[0m	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/log.go:113	test error
+project-layout/pkg/log.(*Logger).Error
+	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/log.go:113
+project-layout/pkg/log.Error
+	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/global.go:54
+project-layout/pkg/log.TestGlobalLog
+	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/global_test.go:13
+testing.tRunner
+	/usr/local/go/src/testing/testing.go:1446
+2023-08-08T14:32:24.986+0800	[33mwarn[0m	/Users/moocss/work/GoProjects/go-training/02-gin/project-layout/pkg/log/log.go:121	test warn

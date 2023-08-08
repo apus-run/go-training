@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -129,27 +130,33 @@ func (l *Logger) Panic(msg string, tags ...zap.Field) {
 }
 
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.logger.Debug(format, zap.Any("args", args))
+	msg := fmt.Sprintf(format, args...)
+	l.logger.Debug(msg, zap.Any("args", args))
 }
 
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.logger.Info(format, zap.Any("args", args))
+	msg := fmt.Sprintf(format, args...)
+	l.logger.Info(msg, zap.Any("args", args))
 }
 
 func (l *Logger) Warnf(format string, args ...interface{}) {
-	l.logger.Warn(format, zap.Any("args", args))
+	msg := fmt.Sprintf(format, args...)
+	l.logger.Warn(msg, zap.Any("args", args))
 }
 
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.logger.Error(format, zap.Any("args", args))
+	msg := fmt.Sprintf(format, args...)
+	l.logger.Error(msg, zap.Any("args", args))
 }
 
 func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.logger.Fatal(format, zap.Any("args", args))
+	msg := fmt.Sprintf(format, args...)
+	l.logger.Fatal(msg, zap.Any("args", args))
 }
 
 func (l *Logger) Panicf(format string, args ...interface{}) {
-	l.logger.Panic(format, zap.Any("args", args))
+	msg := fmt.Sprintf(format, args...)
+	l.logger.Panic(msg, zap.Any("args", args))
 }
 
 // NewContext 给指定的context添加字段
@@ -174,6 +181,6 @@ func (l *Logger) Close() {
 	_ = l.logger.Sync()
 }
 
-func (l *Logger) Flush() {
+func (l *Logger) Sync() {
 	_ = l.logger.Sync()
 }

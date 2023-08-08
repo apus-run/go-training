@@ -70,7 +70,7 @@ func (c *conf) Load() {
 			v.AutomaticEnv()
 
 			name := strings.TrimSuffix(path.Base(f.Key), filepath.Ext(f.Key))
-			log.Printf("配置文件名: %s", name)
+			// log.Printf("配置文件加载成功: %s", f.Path)
 			c.files.Store(name, v)
 		}
 	}

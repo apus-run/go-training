@@ -1,13 +1,11 @@
-package dao
+package model
 
 import (
 	"gorm.io/gorm"
-	
-	"project-layout/internal/repository/dao/model"
 )
 
 func InitTables(db *gorm.DB) {
-	err := db.AutoMigrate(&model.User{})
+	err := db.AutoMigrate(&User{})
 	if err != nil {
 		panic(err)
 	}

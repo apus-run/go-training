@@ -3,6 +3,7 @@ package ginx
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,26 +13,22 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"project-layout/pkg/log"
 )
 
 // HttpServer 代表当前服务端实例
 type HttpServer struct {
 	// 服务配置
 	options *Options
-	// 日志
-	log *log.Logger
+
 	// shutdown回调函数
 	fn func()
 }
 
 // NewHttpServer 创建server实例
-func NewHttpServer(logger *log.Logger, options ...Option) *HttpServer {
+func NewHttpServer(options ...Option) *HttpServer {
 	opts := Apply(options...)
 	return &HttpServer{
 		options: opts,
-		log:     logger,
 	}
 }
 
@@ -43,11 +40,17 @@ type Router interface {
 // Run server的启动入口
 // 加载路由, 启动服务
 func (s *HttpServer) Run(rs ...Router) {
-	var wg sync.WaitGroup
-	wg.Add(1)
+	wg := sync.WaitGroup{}
 
 	// 设置gin启动模式，必须在创建gin实例之前
-	gin.SetMode(s.options.mode)
+	switch s.options.mode {
+	case "prod":
+		gin.SetMode(gin.ReleaseMode)
+	case "test":
+		gin.SetMode(gin.TestMode)
+	default:
+		gin.SetMode(gin.DebugMode)
+	}
 
 	// 创建gin实例
 	g := gin.Default()
@@ -55,50 +58,54 @@ func (s *HttpServer) Run(rs ...Router) {
 	// 加载路由
 	s.registerRoutes(g, rs...)
 
-	// health check
-	go func() {
-		if err := Ping(s.options.port, s.options.maxPingCount); err != nil {
-			s.log.Fatal("server no response")
-		}
-		s.log.Infof("server started success! port: %s", s.options.port)
-	}()
+	var addr string
+	if strings.HasPrefix(s.options.port, ":") {
+		addr = fmt.Sprintf("%s%s", s.options.host, s.options.port)
+	}
+	addr = fmt.Sprintf("%s:%s", s.options.host, s.options.port)
 
+	// 启动服务
 	srv := http.Server{
-		Addr:    s.options.port,
+		Addr:    addr,
 		Handler: g,
 	}
 	if s.fn != nil {
 		srv.RegisterOnShutdown(s.fn)
 	}
 	// graceful shutdown
-	sgn := make(chan os.Signal, 1)
-	signal.Notify(
-		sgn,
+	exitSignals := []os.Signal{
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGHUP,
 		syscall.SIGQUIT,
-	)
+	}
 
+	// 等待中断信号来优雅地关闭服务器
+	quit := make(chan os.Signal, len(exitSignals))
+	// kill 默认会发送 syscall.SIGTERM 信号
+	// kill -2 发送 syscall.SIGINT 信号，我们常用的Ctrl+C就是触发系统SIGINT信号
+	// kill -9 发送 syscall.SIGKILL 信号，但是不能被捕获，所以不需要添加它
+	// signal.Notify把收到的 syscall.SIGINT或syscall.SIGTERM 信号转发给quit
+	signal.Notify(quit, exitSignals...)
+
+	wg.Add(1)
 	go func() {
-		<-sgn
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		<-quit
+		stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			s.log.Errorf("server shutdown err %v \n", err)
+		if err := srv.Shutdown(stopCtx); err != nil {
+			log.Printf("server shutdown err %v \n", err)
 		}
 		wg.Done()
 	}()
 
+	log.Printf("server start on port %s", s.options.port)
 	err := srv.ListenAndServe()
-	if err != nil {
-		if err != http.ErrServerClosed {
-			s.log.Errorf("server start failed on port %s", s.options.port)
-			return
-		}
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server start failed on port %s", s.options.port)
 	}
 	wg.Wait()
-	s.log.Infof("server stop on port %s", s.options.port)
+	log.Printf("server stop on port %s", s.options.port)
 }
 
 // RouterLoad 加载自定义路由
@@ -112,26 +119,4 @@ func (s *HttpServer) registerRoutes(g *gin.Engine, rs ...Router) *HttpServer {
 // RegisterOnShutdown 注册shutdown后的回调处理函数，用于清理资源
 func (s *HttpServer) RegisterOnShutdown(f func()) {
 	s.fn = f
-}
-
-// Ping 用来检查是否程序正常启动
-func Ping(port string, maxCount int) error {
-	seconds := 1
-	if len(port) == 0 {
-		panic("Please specify the service port")
-	}
-	if !strings.HasPrefix(port, ":") {
-		port += ":"
-	}
-	url := fmt.Sprintf("http://localhost%s/ping", port)
-	for i := 0; i < maxCount; i++ {
-		resp, err := http.Get(url)
-		if nil == err && resp != nil && resp.StatusCode == http.StatusOK {
-			return nil
-		}
-		fmt.Printf("等待服务在线, 已等待 %d 秒，最多等待 %d 秒", seconds, maxCount)
-		time.Sleep(time.Second * 1)
-		seconds++
-	}
-	return fmt.Errorf("服务启动失败，端口 %s", port)
 }

@@ -11,16 +11,22 @@ type Option func(*Options) error
 
 type Options struct {
 	mode         string // dev or prod
-	addr         string
+	host         string
 	port         string
 	maxPingCount int
+
+	// Before and After funcs
+	//beforeStart []func(context.Context) error
+	//beforeStop  []func(context.Context) error
+	//afterStart  []func(context.Context) error
+	//afterStop   []func(context.Context) error
 }
 
 // DefaultOptions .
 func DefaultOptions() *Options {
 	return &Options{
 		mode:         "dev",
-		addr:         "localhost",
+		host:         "localhost",
 		port:         "8080",
 		maxPingCount: 5,
 	}
@@ -49,12 +55,12 @@ func WithMode(mode string) Option {
 }
 
 // WithAddr .
-func WithAddr(addr string) Option {
+func WithAddr(host string) Option {
 	return func(o *Options) error {
-		if addr == "" {
-			return errors.New("addr can not be empty")
+		if host == "" {
+			return errors.New("host can not be empty")
 		}
-		o.addr = addr
+		o.host = host
 		return nil
 	}
 }

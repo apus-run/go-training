@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"project-layout/internal/repository"
+	"project-layout/internal/infra"
 	"project-layout/internal/repository/dao/model"
 )
 
@@ -23,10 +23,10 @@ type UserDAO interface {
 }
 
 type userDAO struct {
-	data *repository.Data
+	data *infra.Data
 }
 
-func NewUserDAO(data *repository.Data) UserDAO {
+func NewUserDAO(data *infra.Data) UserDAO {
 	return &userDAO{
 		data: data,
 	}

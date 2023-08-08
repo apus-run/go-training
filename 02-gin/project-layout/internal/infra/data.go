@@ -1,8 +1,8 @@
-package repository
+package infra
 
 import (
 	"github.com/redis/go-redis/v9"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
 	"project-layout/internal/repository/dao/model"
@@ -42,25 +42,20 @@ func NewData(db *gorm.DB, rdb *redis.Client, log *log.Logger) (*Data, func()) {
 
 func NewDB() *gorm.DB {
 	dsn := conf.Get("config", "data.database.dsn").(string)
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	db, err := gorm.Open(
+		mysql.Open(dsn),
+		&gorm.Config{
+			DisableForeignKeyConstraintWhenMigrating: true,
+		},
+	)
 	if err != nil {
-		panic("failed to connect database")
-	}
-
-	// Auto migrate
-	InitDB(db)
-
-	return db
-}
-
-func InitDB(db *gorm.DB) {
-	if err := db.AutoMigrate(
-		&model.User{},
-	); err != nil {
 		panic(err)
 	}
+
+	// 为了方便，我们这里直接把表初始化放在这里
+	model.InitTables(db)
+
+	return db
 }
 
 func NewRDB() *redis.Client {
