@@ -4,8 +4,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"project-layout/internal/repository/dao/model"
 
+	"project-layout/internal/repository/dao/model"
 	"project-layout/pkg/conf"
 	"project-layout/pkg/log"
 )
@@ -66,11 +66,11 @@ func InitDB(db *gorm.DB) {
 func NewRDB() *redis.Client {
 	addr := conf.Get("config", "data.redis.addr").(string)
 	pwd := conf.Get("config", "data.redis.password").(string)
-	defDB := conf.Get("config", "data.redis.db").(int)
+	dbname := conf.Get("config", "data.redis.db").(int)
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: pwd,
-		DB:       defDB,
+		DB:       dbname,
 	})
 
 	return rdb
