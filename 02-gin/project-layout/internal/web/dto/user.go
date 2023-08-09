@@ -13,8 +13,11 @@ type UserResponse struct {
 	Token    string `json:"token"`
 }
 
+// RegisterRequest 注册请求数据结构
 type RegisterRequest struct {
-	Email           string `json:"email" binding:"required"`
-	Password        string `json:"password" binding:"required, password"`
-	ConfirmPassword string `json:"confirmPassword" binding:"required, password"`
+	Name            string `json:"name"`
+	Phone           string `json:"phone"`
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
 }

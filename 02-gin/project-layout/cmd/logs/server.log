@@ -1,0 +1,6 @@
+{"level":"info","ts":"2023-08-08T22:56:54.135+0800","caller":"log/log.go:109","msg":"save user"}
+{"level":"info","ts":"2023-08-08T23:24:26.674+0800","caller":"log/log.go:109","msg":"save user"}
+{"level":"info","ts":"2023-08-08T23:40:15.628+0800","caller":"log/log.go:109","msg":"save user"}
+{"level":"info","ts":"2023-08-08T23:40:25.593+0800","caller":"log/log.go:109","msg":"save user"}
+{"level":"info","ts":"2023-08-08T23:45:11.517+0800","caller":"log/log.go:109","msg":"closing the data resources"}
+{"level":"info","ts":"2023-08-08T23:52:22.554+0800","caller":"log/log.go:109","msg":"save user"}

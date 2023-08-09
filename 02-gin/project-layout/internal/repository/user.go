@@ -52,6 +52,11 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 	if err != nil {
 		return err
 	}
+
+	// Map fresh record's data into Entity
+	newEntity := userModel.ToEntity()
+	userEntity = newEntity
+
 	return nil
 }
 
@@ -82,6 +87,22 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 
 func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	ur.log.Info("remove user")
+	// Map the data from Entity to DO
+	userModel := model.User{}
+	userModel, _ = userModel.FromEntity(user).(model.User)
+
+	// Remove the data from DB
+	err := ur.dao.Delete(ctx, userModel)
+	if err != nil {
+		return err
+	}
+
+	// Remove the data from cache
+	err = ur.cache.Remove(ctx, user.ID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

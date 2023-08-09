@@ -34,10 +34,10 @@ func NewUserService(repo repository.UserRepository, logger *log.Logger) UserServ
 }
 
 func (us *userService) Login(ctx context.Context, email, password string) (*entity.User, error) {
-	user, err := us.repo.FindByEmail(ctx, email)
 	userEntity := &entity.User{}
+	user, err := us.repo.FindByEmail(ctx, email)
 	if errors.Is(err, repository.ErrUserDataNotFound) {
-		return userEntity, errors.Wrap(repository.ErrUserDataNotFound, fmt.Sprintf("此用户不存在: %v", err))
+		return userEntity, errors.Wrap(repository.ErrUserDataNotFound, fmt.Sprintf("通过邮箱查找用户失败: %v", err))
 	}
 	verify := userEntity.VerifyPassword(user.Password, password)
 	if !verify {

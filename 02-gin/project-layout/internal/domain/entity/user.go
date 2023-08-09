@@ -58,8 +58,9 @@ func (u *User) GenerateHashPassword(password string) (string, error) {
 }
 
 // VerifyPassword 验证密码
-func (u *User) VerifyPassword(hashedPassword, password string) bool {
-	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)); err != nil {
+func (u *User) VerifyPassword(hashedPassword string, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
 		return false
 	}
 	return true

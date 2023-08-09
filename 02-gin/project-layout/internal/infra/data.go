@@ -4,7 +4,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-
 	"project-layout/internal/repository/dao/model"
 	"project-layout/pkg/conf"
 	"project-layout/pkg/log"
@@ -51,6 +50,9 @@ func NewDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	// 没有开启debug模式，不打印sql
+	// db.Logger = logger.Default.LogMode(logger.Silent)
 
 	// 为了方便，我们这里直接把表初始化放在这里
 	model.InitTables(db)

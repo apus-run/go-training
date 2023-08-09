@@ -10,12 +10,12 @@ import (
 var _ Model[entity.User] = (*User)(nil)
 
 type User struct {
-	ID uint64 `gorm:"primaryKey, autoIncrement"`
+	ID uint64 `gorm:"primaryKey,autoIncrement"`
 
 	Name     string `gorm:"type:varchar(20) not null;display:'';comment:'用户名'"`
-	Avatar   string `gorm:"type:varchar(100);not null;display:'';comment:'头像'"`
+	Avatar   string `gorm:"type:varchar(150);not null;display:'';comment:'头像'"`
 	Email    string `gorm:"type:varchar(50);uniqueIndex;not null;display:'';comment:'邮箱'"` // 设置邮箱为唯一索引
-	Password string `gorm:"type:varchar(50);not null;display:'';comment:'密码'"`
+	Password string `gorm:"type:varchar(100);not null;display:'';comment:'密码'"`
 	Phone    string `gorm:"type:varchar(20);unique;not null;display:'';comment:'手机号'"`
 
 	CreatedTime int64 `gorm:"autoCreateTime;not null;comment:'创建时间'"`

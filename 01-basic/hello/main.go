@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -30,7 +30,7 @@ func (u *User) FromEntity() any {
 }
 
 func main() {
-	//user := User{}
+	user := &User{}
 	//u := &User{} // u := new(User)
 	//fmt.Println(user)
 	//fmt.Println(u)
@@ -54,28 +54,29 @@ func main() {
 	//} else {
 	//	fmt.Printf("9000")
 	//}
-	url := fmt.Sprintf("%s/ping", "http://localhost:9000")
 
-	if err := Ping(url, 5); err != nil {
-		fmt.Printf("server no response: %s", err)
+	hash, err := user.GenerateHashPassword("111111")
+	if err != nil {
+		fmt.Println(err)
 	}
-	fmt.Printf("server started success!")
-
+	fmt.Println(hash)
+	fmt.Println(user.VerifyPassword("$2a$10$aQG9ikUEMb.lOHSz8gZC7u2otmykBebB0C2iRT.WssZZmgtdzRnfq", "111111"))
 }
 
-// Ping 用来检查是否程序正常启动
-func Ping(addr string, maxCount int) error {
-	seconds := 1
-	fmt.Printf("地址: %s\n", addr)
-	url := fmt.Sprintf("%s/ping", addr)
-	for i := 0; i < maxCount; i++ {
-		resp, err := http.Get(url)
-		if nil == err && resp != nil && resp.StatusCode == http.StatusOK {
-			return nil
-		}
-		fmt.Printf("等待服务在线, 已等待 %d 秒，最多等待 %d 秒 \n", seconds, maxCount)
-		time.Sleep(time.Second * 1)
-		seconds++
+func (u *User) GenerateHashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
 	}
-	return fmt.Errorf("服务启动失败: %s", addr)
+	pass := string(hash)
+	return pass, nil
+}
+
+// VerifyPassword 验证密码
+func (u *User) VerifyPassword(hashedPassword, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		return false
+	}
+	return true
 }

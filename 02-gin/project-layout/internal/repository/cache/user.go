@@ -23,6 +23,8 @@ type UserCache interface {
 	// 但是我们这里直接缓存全部
 	Set(ctx context.Context, user entity.User) error
 	Get(ctx context.Context, id uint64) (entity.User, error)
+
+	Remove(ctx context.Context, id uint64) error
 }
 
 type userCache struct {
@@ -59,6 +61,11 @@ func (u *userCache) Get(ctx context.Context, id uint64) (entity.User, error) {
 	var art entity.User
 	err = json.Unmarshal(data, &art)
 	return art, err
+}
+
+func (u *userCache) Remove(ctx context.Context, id uint64) error {
+	key := u.key(id)
+	return u.data.RDB.Del(ctx, key).Err()
 }
 
 func (u *userCache) key(id uint64) string {

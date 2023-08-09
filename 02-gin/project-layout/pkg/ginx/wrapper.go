@@ -38,13 +38,6 @@ func FromGinContext(ctx context.Context) (c *gin.Context, ok bool) {
 	return
 }
 
-const (
-	// CodeOK means a successful response
-	CodeOK = 0
-	// CodeErr means a failure response
-	CodeErr = 1
-)
-
 // Response defines HTTP JSON response
 type Response struct {
 	Code    int         `json:"code"`
@@ -60,19 +53,22 @@ func (c *Context) JSON(httpStatus int, resp Response) {
 }
 
 // JSONOK returns JSON response with successful business code and data
-// e.x. {"code":0, "msg":"成功", "data":<data>}
+// e.x. {"code": 200, "msg":"成功", "data":<data>}
 func (c *Context) JSONOK(msg string, data any) {
 	j := new(Response)
-	j.Code = CodeOK
+	j.Code = 200
 	j.Msg = msg
 
-	if data == nil {
+	switch d := data.(type) {
+	case error:
+		j.Data = d.Error()
+	case nil:
 		j.Data = gin.H{}
-	} else {
+	default:
 		j.Data = data
 	}
+
 	c.Context.JSON(http.StatusOK, j)
-	return
 }
 
 // JSONE returns JSON response with failure business code ,msg and data
@@ -81,15 +77,17 @@ func (c *Context) JSONE(code int, msg string, data any) {
 	j := new(Response)
 	j.Code = code
 	j.Msg = msg
+
 	switch d := data.(type) {
 	case error:
 		j.Data = d.Error()
+	case nil:
+		j.Data = gin.H{}
 	default:
 		j.Data = data
 	}
 
 	c.Context.JSON(http.StatusOK, j)
-	return
 }
 
 // NotFound 未找到相关路由

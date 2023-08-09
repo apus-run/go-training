@@ -22,7 +22,7 @@ var flagconf string
 
 func init() {
 	// 设置命令行参数
-	flag.StringVar(&flagconf, "conf", conf.GetEnvString("CONFIG_PATH", "../../config"), "config path, eg: -conf config.yaml")
+	flag.StringVar(&flagconf, "conf", conf.GetEnvString("CONFIG_PATH", "./config"), "config path, eg: -conf config.yaml")
 }
 
 func main() {
