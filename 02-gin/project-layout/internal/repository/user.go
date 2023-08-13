@@ -41,16 +41,22 @@ func NewUserRepository(dao dao.UserDAO, cache cache.UserCache, logger *log.Logge
 	}
 }
 
+// Save 保存用户信息到数据库
 func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) error {
-	ur.log.Info("save user")
+	ur.log.Info("create or update user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
 	userModel, _ = userModel.FromEntity(userEntity).(model.User)
 
-	// Save the data into DB
-	_, err := ur.dao.Insert(ctx, userModel)
-	if err != nil {
-		return err
+	if userModel.ID == 0 {
+		// Insert
+		_, err := ur.dao.Insert(ctx, userModel)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Update
+		return ur.dao.Update(ctx, userModel)
 	}
 
 	// Map fresh record's data into Entity
@@ -60,6 +66,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 	return nil
 }
 
+// SaveAndCache 保存用户信息到数据库和缓存
 func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.User) error {
 	ur.log.Info("save and cache user")
 	// Map the data from Entity to DO
@@ -73,7 +80,7 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 	}
 
 	userModel.ID = id
-	err = ur.cache.Set(ctx, userEntity)
+	err = ur.cache.SetOjb(ctx, userEntity)
 	if err != nil {
 		return err
 	}
@@ -85,6 +92,7 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 	return nil
 }
 
+// Remove 从数据库和缓存中删除用户信息
 func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	ur.log.Info("remove user")
 	// Map the data from Entity to DO
@@ -98,7 +106,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	}
 
 	// Remove the data from cache
-	err = ur.cache.Remove(ctx, user.ID)
+	err = ur.cache.Del(ctx, user.ID)
 	if err != nil {
 		return err
 	}
@@ -106,6 +114,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	return nil
 }
 
+// FindByID 从数据库和缓存中获取用户信息
 func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User, error) {
 	ur.log.Info("find user")
 
@@ -128,17 +137,19 @@ func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User
 	}
 
 	// 3. 更新缓存
-	_ = ur.cache.Set(ctx, newEntity)
+	_ = ur.cache.SetOjb(ctx, newEntity)
 
 	return &newEntity, nil
 }
 
+// FindUserPage 分页查询用户信息
 func (ur *userRepository) FindUserPage(ctx context.Context,
 	name string, page int64, size int64) ([]*entity.User, uint, bool, error) {
 	ur.log.Info("find user page by user name")
 	return nil, 0, true, nil
 }
 
+// FindByPhone 根据手机号查询用户信息
 func (ur *userRepository) FindByPhone(ctx context.Context, phone string) (*entity.User, error) {
 	userModel, err := ur.dao.FindByPhone(ctx, phone)
 	if err != nil {
@@ -153,6 +164,7 @@ func (ur *userRepository) FindByPhone(ctx context.Context, phone string) (*entit
 	return &newEntity, nil
 }
 
+// FindByEmail 根据邮箱查询用户信息
 func (ur *userRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	userModel, err := ur.dao.FindByEmail(ctx, email)
 	if err != nil {

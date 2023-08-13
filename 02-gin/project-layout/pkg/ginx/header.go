@@ -2,7 +2,6 @@ package ginx
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,23 +13,6 @@ func NoCache() gin.HandlerFunc {
 		c.Header("Cache-Control", "no-cache, max-age=0, must-revalidate")
 		c.Header("Expires", "Thu, 01 Jan 1970 00:00:00 GMT")
 		c.Header("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
-		c.Next()
-	}
-}
-
-func CORS() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		method := c.Request.Method
-		c.Header("Access-Control-Allow-Origin", c.GetHeader("Origin"))
-		c.Header("Access-Control-Allow-Credentials", "true")
-		if strings.ToUpper(method) == "OPTIONS" {
-			c.Header("Access-Control-Allow-Methods", c.GetHeader("Access-Control-Request-Method"))
-			c.Header("Access-Control-Allow-Headers", c.GetHeader("Access-Control-Request-Headers"))
-			c.Header("Access-Control-Max-Age", "7200")
-			c.AbortWithStatus(http.StatusOK)
-
-			return
-		}
 		c.Next()
 	}
 }

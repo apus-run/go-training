@@ -17,3 +17,10 @@ Content-Type: application/json
     "email": "moocss@100.com",
     "password": "111111"
 }
+
+### 用户信息
+GET http://localhost:9000/v1/user/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJBZ2VudCI6IkFwYWNoZS1IdHRwQ2xpZW50LzQuNS4xMyAoSmF2YS8xNy4wLjYpIiwiZXhwIjoxNjkxODE3MTMwLCJuYmYiOjE2OTE4MTcwMTAsImlhdCI6MTY5MTgxNzAxMH0.5dQE--xgMuxXYnhXduZ8w7wr3EwS5teCpgUItzPCfiI
+
+
+### 用户列表

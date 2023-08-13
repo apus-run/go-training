@@ -1,26 +1,18 @@
-### 用户注册
-POST http://localhost:9000/v1/user/register
+### 心跳检测
+GET http://localhost:8080/ping
 Content-Type: application/json
 
-{
-    "name": "test",
-    "password": "111111",
-    "email": "moocss@100.com",
-    "phone": "13800138003"
-}
 
 ### 用户登录
-POST http://localhost:9000/v1/user/login
+POST http://localhost:8080/login
 Content-Type: application/json
 
 {
-    "email": "moocss@100.com",
-    "password": "111111"
+    "email": "moocss@163.com",
+    "password": "123456"
 }
 
-### 用户信息
-GET http://localhost:9000/v1/user/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJBZ2VudCI6IkFwYWNoZS1IdHRwQ2xpZW50LzQuNS4xMyAoSmF2YS8xNy4wLjYpIiwiZXhwIjoxNjkxODE3MTMwLCJuYmYiOjE2OTE4MTcwMTAsImlhdCI6MTY5MTgxNzAxMH0.5dQE--xgMuxXYnhXduZ8w7wr3EwS5teCpgUItzPCfiI
+### 根据用户ID, 查询用户
+GET http://localhost:8080/user/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTE4ODk2ODksIlVzZXJJRCI6MSwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikifQ.W2pAx3lvdFMsw29OspgTJsLQzMQhkFUgSZC3kMHXJtY
 
-
-### 用户列表

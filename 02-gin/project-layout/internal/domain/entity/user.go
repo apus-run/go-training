@@ -19,11 +19,17 @@ var ErrInvalidEmail = errors.New("邮箱不合法")
 type Users []User
 type User struct {
 	ID       uint64
-	Name     string
+	Name     string // 账户名
 	Avatar   string
 	Email    string
 	Password string
 	Phone    string
+
+	Gender   int    // 性别
+	NickName string // 昵称
+	RealName string // 真实姓名
+	Birthday string // 生日
+	Profile  string // 个人简介
 
 	CreatedTime time.Time  // 创建时间
 	UpdatedTime time.Time  // 更新时间
@@ -40,7 +46,7 @@ func (u *User) Validate() error {
 
 	}
 
-	ok, err := regexp.Match("", []byte(u.Email))
+	ok, err := regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, u.Email)
 	if !ok || err != nil {
 		return ErrInvalidEmail
 	}
@@ -60,8 +66,5 @@ func (u *User) GenerateHashPassword(password string) (string, error) {
 // VerifyPassword 验证密码
 func (u *User) VerifyPassword(hashedPassword string, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }

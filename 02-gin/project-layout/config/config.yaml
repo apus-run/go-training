@@ -12,4 +12,5 @@ data:
     read_timeout: 0.2s
     write_timeout: 0.2s
 jwt:
-  secret: "hello"
+  secret: "moyn8y9abnd7q4zkq2m73yw8tu9j5ixm"
+  expire: 3600

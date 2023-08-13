@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	regexp "github.com/dlclark/regexp2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,7 +31,7 @@ func (u *User) FromEntity() any {
 }
 
 func main() {
-	user := &User{}
+	// user := &User{}
 	//u := &User{} // u := new(User)
 	//fmt.Println(user)
 	//fmt.Println(u)
@@ -55,12 +56,31 @@ func main() {
 	//	fmt.Printf("9000")
 	//}
 
-	hash, err := user.GenerateHashPassword("111111")
-	if err != nil {
-		fmt.Println(err)
+	//hash, err := user.GenerateHashPassword("123456")
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fmt.Println(hash)
+	//fmt.Println(user.VerifyPassword("$2a$10$18ojWf3/xEPxU0vlcjQjv.EMle.5EepSaw66G9fR0c0zlRBSnsW3e", "123456"))
+
+	isEmail, err := regexp.
+		MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, regexp.None).
+		MatchString("moocss@163.com")
+	if !isEmail || err != nil {
+		fmt.Printf("邮箱不合法\n")
+	} else {
+		fmt.Printf("邮箱合法\n")
 	}
-	fmt.Println(hash)
-	fmt.Println(user.VerifyPassword("$2a$10$aQG9ikUEMb.lOHSz8gZC7u2otmykBebB0C2iRT.WssZZmgtdzRnfq", "111111"))
+
+	isPassword, err := regexp.
+		MustCompile(`^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`, regexp.None).
+		MatchString("www#123456")
+	if !isPassword || err != nil {
+		fmt.Printf("密码不合法\n")
+	} else {
+		fmt.Printf("密码合法\n")
+	}
+
 }
 
 func (u *User) GenerateHashPassword(password string) (string, error) {
@@ -75,8 +95,5 @@ func (u *User) GenerateHashPassword(password string) (string, error) {
 // VerifyPassword 验证密码
 func (u *User) VerifyPassword(hashedPassword, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }

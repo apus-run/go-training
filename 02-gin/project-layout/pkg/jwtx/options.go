@@ -1,4 +1,4 @@
-package jwt
+package jwtx
 
 import (
 	"github.com/pkg/errors"
@@ -10,8 +10,11 @@ type Option func(*Options) error
 
 type Options struct {
 	secretKey string
-	userId    uint64
-	expireAt  time.Time
+
+	userID    uint64
+	userAgent string
+
+	expireAt time.Time
 }
 
 // DefaultOptions .
@@ -47,9 +50,9 @@ func WithSecretKey(secretKey string) Option {
 func WithUserId(userId uint64) Option {
 	return func(o *Options) error {
 		if userId == 0 {
-			return errors.New("userId can not be empty")
+			return errors.New("UserID can not be empty")
 		}
-		o.userId = userId
+		o.userID = userId
 		return nil
 	}
 }
@@ -61,6 +64,16 @@ func WithExpireAt(expireAt time.Time) Option {
 			return errors.New("expireAt can not be empty")
 		}
 		o.expireAt = expireAt
+		return nil
+	}
+}
+
+func WithUserAgent(ua string) Option {
+	return func(o *Options) error {
+		if ua == "" {
+			return errors.New("UserAgent can not be empty")
+		}
+		o.userAgent = ua
 		return nil
 	}
 }

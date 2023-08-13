@@ -10,7 +10,6 @@ import (
 	"project-layout/internal/service"
 	"project-layout/internal/web"
 	"project-layout/internal/web/handler"
-	"project-layout/internal/web/middleware"
 	"project-layout/pkg/conf"
 	"project-layout/pkg/conf/file"
 	"project-layout/pkg/ginx"
@@ -64,5 +63,5 @@ func main() {
 
 	// 注册路由
 	r := web.NewRouter(uh)
-	srv.Run(middleware.NewMiddleware(), r)
+	srv.Run(r)
 }

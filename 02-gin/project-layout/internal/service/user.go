@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-
 	"github.com/pkg/errors"
 
 	"project-layout/internal/domain/entity"
@@ -18,6 +17,7 @@ type UserService interface {
 	Register(ctx context.Context, user entity.User) (*entity.User, error)
 	FindOrCreate(ctx context.Context, phone string) (*entity.User, error)
 	Profile(ctx context.Context, id uint64) (*entity.User, error)
+	UpdateProfile(ctx context.Context, user entity.User) error
 }
 
 type userService struct {
@@ -84,4 +84,24 @@ func (us *userService) FindOrCreate(ctx context.Context, phone string) (*entity.
 
 func (us *userService) Profile(ctx context.Context, id uint64) (*entity.User, error) {
 	return us.repo.FindByID(ctx, id)
+}
+
+func (us *userService) UpdateProfile(ctx context.Context, user entity.User) error {
+	u, err := us.repo.FindByID(ctx, user.ID)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("要更新的用户不存在: %v", err))
+	}
+
+	u.ID = user.ID
+	u.Gender = user.Gender
+	u.NickName = user.NickName
+	u.RealName = user.RealName
+	u.Birthday = user.Birthday
+	u.Profile = user.Profile
+
+	err = us.repo.Save(ctx, *u)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("更新用户失败: %v", err))
+	}
+	return nil
 }
