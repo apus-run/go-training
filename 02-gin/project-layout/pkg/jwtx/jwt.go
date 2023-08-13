@@ -6,9 +6,12 @@ import (
 	"time"
 )
 
+// SecretKey jwt secret key
+var SecretKey = "moyn8y9abnd7q4zkq2m73yw8tu9j5ixm"
+
 // CustomClaims 在标准声明中加入用户id
 type CustomClaims struct {
-	UserId uint64 `json:"user_id"`
+	UserID uint64 `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
@@ -16,7 +19,7 @@ type CustomClaims struct {
 func GenerateToken(options ...Option) (string, error) {
 	opts := Apply(options...)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{
-		UserId: opts.userId,
+		UserID: opts.userId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(opts.expireAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

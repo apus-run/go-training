@@ -1,4 +1,4 @@
-package middleware
+package authtoken
 
 import (
 	"fmt"
@@ -11,8 +11,14 @@ import (
 	"project-layout/pkg/jwt"
 )
 
-// AuthToken 鉴权，验证用户token是否有效
-func AuthToken() gin.HandlerFunc {
+// Builder 鉴权，验证用户token是否有效
+type Builder struct{}
+
+func NewBuilder() *Builder {
+	return &Builder{}
+}
+
+func (b *Builder) Build() gin.HandlerFunc {
 	return ginx.Handle(func(c *ginx.Context) {
 		tokenString, err := getJwtFromHeader(c)
 		if err != nil {
@@ -30,7 +36,6 @@ func AuthToken() gin.HandlerFunc {
 		c.Set("claims", claims)
 		c.Next()
 	})
-
 }
 
 func getJwtFromHeader(c *ginx.Context) (string, error) {
