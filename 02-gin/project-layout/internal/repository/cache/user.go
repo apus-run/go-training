@@ -13,8 +13,10 @@ import (
 	"project-layout/internal/infra"
 )
 
-// ErrKeyNotExist 因为我们目前还是只有一个实现，所以可以保持用别名
 var ErrKeyNotFound = errors.New("key not found")
+
+// ErrKeyNotExist 因为我们目前还是只有一个实现，所以可以保持用别名
+var ErrKeyNotExist = redis.Nil
 
 var _ UserCache = (*userCache)(nil)
 
@@ -31,7 +33,8 @@ type UserCache interface {
 }
 
 type userCache struct {
-	data *infra.Data
+	// 使用 Cmdable 是为了更好的扩展性, redis.Client 和 redis.ClusterClient 都实现了这个接口
+	client redis.Cmdable
 
 	// 缓存过期时间
 	expire time.Duration
@@ -39,28 +42,28 @@ type userCache struct {
 
 func NewUserCache(data *infra.Data) UserCache {
 	return &userCache{
-		data:   data,
+		client: data.RDB,
 		expire: time.Minute * 15,
 	}
 }
 
-func (uc *userCache) Set(ctx context.Context, key string, val string) error {
-	return uc.data.RDB.Set(ctx, key, val, uc.expire).Err()
+func (cache *userCache) Set(ctx context.Context, key string, val string) error {
+	return cache.client.Set(ctx, key, val, cache.expire).Err()
 }
 
 // SetObj 设置某个key和对象到缓存, 对象必须实现 https://pkg.go.dev/encoding#BinaryMarshaler
-func (uc *userCache) SetOjb(ctx context.Context, user entity.User) error {
+func (cache *userCache) SetOjb(ctx context.Context, user entity.User) error {
 	data, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
-	key := uc.key(user.ID)
-	return uc.data.RDB.Set(ctx, key, string(data), uc.expire).Err()
+	key := cache.key(user.ID)
+	return cache.client.Set(ctx, key, string(data), cache.expire).Err()
 }
 
 // SetMany 设置多个key和值到缓存
-func (uc *userCache) SetMany(ctx context.Context, data map[string]string, timeout time.Duration) error {
-	pipline := uc.data.RDB.Pipeline()
+func (cache *userCache) SetMany(ctx context.Context, data map[string]string, timeout time.Duration) error {
+	pipline := cache.client.Pipeline()
 	cmds := make([]*redis.StatusCmd, 0, len(data))
 	for k, v := range data {
 		cmds = append(cmds, pipline.Set(ctx, k, v, timeout))
@@ -69,24 +72,24 @@ func (uc *userCache) SetMany(ctx context.Context, data map[string]string, timeou
 	return err
 }
 
-func (uc *userCache) Get(ctx context.Context, id uint64) (entity.User, error) {
-	key := uc.key(id)
-	cmd := uc.data.RDB.Get(ctx, key)
-	if errors.Is(cmd.Err(), redis.Nil) {
+func (cache *userCache) Get(ctx context.Context, id uint64) (entity.User, error) {
+	key := cache.key(id)
+	cmd := cache.client.Get(ctx, key)
+	// 数据不存在，cmd.Err = redis.Nil
+	if errors.Is(cmd.Err(), ErrKeyNotExist) {
 		return entity.User{}, ErrKeyNotFound
 	}
 
-	data, _ := cmd.Bytes()
-
 	// 反序列化回来
 	var art entity.User
+	data, _ := cmd.Bytes()
 	err := json.Unmarshal(data, &art)
 	return art, err
 }
 
 // GetObj 获取某个key对应的对象, 对象必须实现 https://pkg.go.dev/encoding#BinaryUnMarshaler
-func (uc *userCache) GetObj(ctx context.Context, key string, model interface{}) error {
-	cmd := uc.data.RDB.Get(ctx, key)
+func (cache *userCache) GetObj(ctx context.Context, key string, model interface{}) error {
+	cmd := cache.client.Get(ctx, key)
 	if errors.Is(cmd.Err(), redis.Nil) {
 		return ErrKeyNotFound
 	}
@@ -99,8 +102,8 @@ func (uc *userCache) GetObj(ctx context.Context, key string, model interface{}) 
 }
 
 // GetMany 获取某些key对应的值
-func (uc *userCache) GetMany(ctx context.Context, keys []string) (map[string]string, error) {
-	pipeline := uc.data.RDB.Pipeline()
+func (cache *userCache) GetMany(ctx context.Context, keys []string) (map[string]string, error) {
+	pipeline := cache.client.Pipeline()
 	vals := make(map[string]string)
 	cmds := make([]*redis.StringCmd, 0, len(keys))
 
@@ -125,13 +128,13 @@ func (uc *userCache) GetMany(ctx context.Context, keys []string) (map[string]str
 	return vals, nil
 }
 
-func (uc *userCache) Del(ctx context.Context, id uint64) error {
-	key := uc.key(id)
-	return uc.data.RDB.Del(ctx, key).Err()
+func (cache *userCache) Del(ctx context.Context, id uint64) error {
+	key := cache.key(id)
+	return cache.client.Del(ctx, key).Err()
 }
 
-func (uc *userCache) DelMany(ctx context.Context, keys []string) error {
-	pipline := uc.data.RDB.Pipeline()
+func (cache *userCache) DelMany(ctx context.Context, keys []string) error {
+	pipline := cache.client.Pipeline()
 	cmds := make([]*redis.IntCmd, 0, len(keys))
 	for _, key := range keys {
 		cmds = append(cmds, pipline.Del(ctx, key))
@@ -140,28 +143,28 @@ func (uc *userCache) DelMany(ctx context.Context, keys []string) error {
 	return err
 }
 
-func (uc *userCache) Calc(ctx context.Context, key string, step int64) (int64, error) {
-	return uc.data.RDB.IncrBy(ctx, key, step).Result()
+func (cache *userCache) Calc(ctx context.Context, key string, step int64) (int64, error) {
+	return cache.client.IncrBy(ctx, key, step).Result()
 }
 
-func (uc *userCache) Increment(ctx context.Context, key string) (int64, error) {
-	return uc.data.RDB.IncrBy(ctx, key, 1).Result()
+func (cache *userCache) Increment(ctx context.Context, key string) (int64, error) {
+	return cache.client.IncrBy(ctx, key, 1).Result()
 }
 
-func (uc *userCache) Decrement(ctx context.Context, key string) (int64, error) {
-	return uc.data.RDB.IncrBy(ctx, key, -1).Result()
+func (cache *userCache) Decrement(ctx context.Context, key string) (int64, error) {
+	return cache.client.IncrBy(ctx, key, -1).Result()
 }
 
 // SetTTL 设置某个key的超时时间
-func (uc *userCache) SetTTL(ctx context.Context, key string, timeout time.Duration) error {
-	return uc.data.RDB.Expire(ctx, key, timeout).Err()
+func (cache *userCache) SetTTL(ctx context.Context, key string, timeout time.Duration) error {
+	return cache.client.Expire(ctx, key, timeout).Err()
 }
 
 // GetTTL 获取某个key的超时时间
-func (uc *userCache) GetTTL(ctx context.Context, key string) (time.Duration, error) {
-	return uc.data.RDB.TTL(ctx, key).Result()
+func (cache *userCache) GetTTL(ctx context.Context, key string) (time.Duration, error) {
+	return cache.client.TTL(ctx, key).Result()
 }
 
-func (u *userCache) key(id uint64) string {
+func (cache *userCache) key(id uint64) string {
 	return fmt.Sprintf("user:info:%d", id)
 }

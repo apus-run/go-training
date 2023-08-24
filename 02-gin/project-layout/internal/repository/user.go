@@ -2,6 +2,10 @@ package repository
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/repository/cache"
@@ -10,6 +14,7 @@ import (
 	"project-layout/pkg/log"
 )
 
+var ErrUserDuplicateEmailOrPhone = dao.ErrUserDuplicateEmailOrPhone
 var ErrUserDataNotFound = dao.ErrRecordNotFound
 
 type UserRepository interface {
@@ -117,6 +122,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 // FindByID 从数据库和缓存中获取用户信息
 func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User, error) {
 	ur.log.Info("find user")
+	userEntity := &entity.User{}
 
 	// 1. 先从缓存中获取
 	res, err := ur.cache.Get(ctx, id)
@@ -126,20 +132,51 @@ func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User
 
 	// 2. 缓存中没有，从数据库中获取
 	userModel, err := ur.dao.FindByID(ctx, id)
+
+	// 对错误进行包装, 尽量使用通一的错误处理(Sentinel error), 屏蔽掉不同数据库的报错差异性
+	// 这里不只是返回这一种错误, 在上层打日志的时候还要看到底层出的是那种错误, 所以原始的错误信息也需要保留.
 	if err != nil {
-		return &entity.User{}, err
+		if errors.Is(err, ErrUserDataNotFound) {
+			return userEntity, errors.Wrap(ErrUserDataNotFound, fmt.Sprintf("此用户不存在, err: %v", err))
+		} else {
+			return userEntity, err
+		}
 	}
 
 	// Map fresh record's data into Entity
 	newEntity := userModel.ToEntity()
-	if err != nil {
-		return &entity.User{}, err
-	}
 
 	// 3. 更新缓存
-	_ = ur.cache.SetOjb(ctx, newEntity)
+	go func() {
+		err = ur.cache.SetOjb(ctx, newEntity)
+		if err != nil {
+			// 打日志, 做监控, 可以推断出缓存服务是否正常
+			ur.log.Error("set cache failed", zap.Error(err))
+		}
+	}()
 
 	return &newEntity, nil
+}
+
+func (ur *userRepository) FindByIdV1(ctx context.Context, id uint64) (*entity.User, error) {
+	u, err := ur.cache.Get(ctx, id)
+	switch err {
+	case nil:
+		return &u, err
+	case cache.ErrKeyNotExist:
+		userModel, err := ur.dao.FindByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		// Map fresh record's data into Entity
+		newEntity := userModel.ToEntity()
+		if err != nil {
+			return nil, err
+		}
+		return &newEntity, nil
+	default:
+		return &entity.User{}, err
+	}
 }
 
 // FindUserPage 分页查询用户信息

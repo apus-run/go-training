@@ -2,12 +2,12 @@ package router
 
 import "C"
 import (
-	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	jwt "github.com/golang-jwt/jwt/v5"
 
 	"gin-with-jwt/model"
 	"gin-with-jwt/router/middleware/auth"

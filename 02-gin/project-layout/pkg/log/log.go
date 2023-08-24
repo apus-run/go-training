@@ -44,6 +44,7 @@ func NewLogger(opts ...Option) *Logger {
 
 func getEncoder(encoding string) zapcore.Encoder {
 	if encoding == "console" {
+		// NewConsoleEncoder 打印更符合人们观察的方式
 		return zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
 			TimeKey:        "ts",
 			LevelKey:       "level",
@@ -52,7 +53,7 @@ func getEncoder(encoding string) zapcore.Encoder {
 			MessageKey:     "msg",
 			StacktraceKey:  "stacktrace",
 			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.LowercaseColorLevelEncoder,
+			EncodeLevel:    zapcore.CapitalColorLevelEncoder, // 在日志文件中使用大写字母记录日志级别
 			EncodeTime:     zapcore.ISO8601TimeEncoder,
 			EncodeDuration: zapcore.SecondsDurationEncoder,
 			EncodeCaller:   zapcore.FullCallerEncoder,

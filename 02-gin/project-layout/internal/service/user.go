@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
 
 	"project-layout/internal/domain/entity"
@@ -10,6 +11,7 @@ import (
 	"project-layout/pkg/log"
 )
 
+var ErrUserDuplicateEmailOrPhone = repository.ErrUserDuplicateEmailOrPhone
 var ErrInvalidUserOrPassword = errors.New("邮箱或者密码不正确")
 
 type UserService interface {
@@ -88,8 +90,9 @@ func (us *userService) Profile(ctx context.Context, id uint64) (*entity.User, er
 
 func (us *userService) UpdateProfile(ctx context.Context, user entity.User) error {
 	u, err := us.repo.FindByID(ctx, user.ID)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("要更新的用户不存在: %v", err))
+	// 中间层 service 尽量不处理 dao 的 error, 直接透传到它的最上层.
+	if err != nil && !errors.Is(err, repository.ErrUserDataNotFound) {
+		return err
 	}
 
 	u.ID = user.ID

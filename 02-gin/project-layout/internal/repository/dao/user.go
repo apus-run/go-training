@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 
 	"project-layout/internal/infra"
@@ -11,6 +12,8 @@ import (
 )
 
 var ErrRecordNotFound = errors.New("record not found")
+var ErrUserDuplicateEmailOrPhone = errors.New("email or phone number already exists")
+var DuplicateEntryErrCode uint16 = 1062
 
 // UserDAO ... 数据访问层相关接口定义, 使用 DB 风格的命名
 type UserDAO interface {
@@ -38,6 +41,13 @@ func (u *userDAO) Insert(ctx context.Context, userModel model.User) (uint64, err
 	userModel.UpdatedTime = now
 
 	err := u.data.DB.WithContext(ctx).Create(&userModel).Error
+
+	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
+		if mysqlErr.Number == DuplicateEntryErrCode {
+			return 0, errors.Wrap(ErrUserDuplicateEmailOrPhone, mysqlErr.Error())
+		}
+	}
+
 	return userModel.ID, err
 }
 

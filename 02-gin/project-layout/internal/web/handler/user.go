@@ -5,6 +5,7 @@ import (
 	"time"
 
 	regexp "github.com/dlclark/regexp2"
+	"github.com/pkg/errors"
 
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/service"
@@ -28,7 +29,7 @@ func NewUserHandler(svc service.UserService, logger *log.Logger) *UserHandler {
 }
 
 func (h *UserHandler) Login(ctx *ginx.Context) {
-	var req dto.UserRequest
+	var req dto.LoginReq
 	err := ctx.Bind(&req)
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
@@ -40,8 +41,10 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 		return
 	}
 
-	// 过期时间为30分钟, 测试使用1分钟
-	expireAt := time.Now().Add(time.Minute * 1)
+	// 测试使用1分钟
+	// expireAt := time.Now().Add(time.Minute)
+	// 正常设置为30分钟，要将过期时间设置更长一些
+	expireAt := time.Now().Add(time.Minute * 30)
 	token, err := jwtx.GenerateToken(
 		jwtx.WithUserAgent(ctx.Request.UserAgent()),
 		jwtx.WithSecretKey(jwtx.SecretKey),
@@ -57,11 +60,14 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 	// 将token放入响应头中
 	ctx.Header("x-jwt-token", token)
 
-	ctx.JSONOK("登录成功", nil)
+	ctx.JSONOK("登录成功", dto.LoginResp{
+		ID:   user.ID,
+		Name: user.Name,
+	})
 }
 
 func (h *UserHandler) Register(ctx *ginx.Context) {
-	var req dto.RegisterRequest
+	var req dto.RegisterReq
 	err := ctx.Bind(&req)
 	if err != nil {
 		ctx.JSONE(http.StatusOK, err.Error(), nil)
@@ -99,6 +105,11 @@ func (h *UserHandler) Register(ctx *ginx.Context) {
 		},
 	)
 
+	if errors.As(err, service.ErrUserDuplicateEmailOrPhone) {
+		ctx.JSONE(http.StatusOK, "邮箱或者手机号已经存在", nil)
+		return
+	}
+
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 		return
@@ -119,7 +130,7 @@ func (h *UserHandler) Profile(ctx *ginx.Context) {
 		return
 	}
 
-	ctx.JSONOK("OK", dto.ProfileResponse{
+	ctx.JSONOK("OK", dto.UserInfoResp{
 		Email:    user.Email,
 		Phone:    user.Phone,
 		Gender:   user.Gender,
@@ -131,7 +142,7 @@ func (h *UserHandler) Profile(ctx *ginx.Context) {
 }
 
 func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
-	var req dto.UpdateProfileRequest
+	var req dto.UpdateProfileReq
 	err := ctx.Bind(&req)
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
@@ -142,7 +153,7 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 		ctx.JSONE(http.StatusBadRequest, "性别参数错误", nil)
 		return
 	}
-	
+
 	if len(req.NickName) < 2 || len(req.NickName) > 20 {
 		ctx.JSONE(http.StatusBadRequest, "昵称为2 ~ 20个字符", nil)
 		return
