@@ -15,16 +15,22 @@ import (
 	"project-layout/pkg/log"
 )
 
+var (
+	bizLoginType = "user:login"
+)
+
 type UserHandler struct {
-	svc service.UserService
+	svc     service.UserService
+	codeSvc service.CodeService
 
 	log *log.Logger
 }
 
-func NewUserHandler(svc service.UserService, logger *log.Logger) *UserHandler {
+func NewUserHandler(svc service.UserService, codeSvc service.CodeService, logger *log.Logger) *UserHandler {
 	return &UserHandler{
-		svc: svc,
-		log: logger,
+		svc:     svc,
+		codeSvc: codeSvc,
+		log:     logger,
 	}
 }
 
@@ -64,6 +70,96 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 		ID:   user.ID,
 		Name: user.Name,
 	})
+}
+
+func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+		Code  string `json:"code"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	ok, err := h.codeSvc.Verify(ctx, bizLoginType, req.Phone, req.Code)
+	if err != nil {
+		ctx.JSONE(5, "系统异常", nil)
+		return
+	}
+	if !ok {
+		ctx.JSONE(4, "验证码错误", nil)
+		return
+	}
+
+	// 验证码是对的
+	// 登录或者注册用户
+	user, err := h.svc.FindOrCreate(ctx, req.Phone)
+	if err != nil {
+		ctx.JSONE(4, "系统错误", nil)
+		return
+	}
+	if err == service.ErrInvalidUserOrPassword {
+		ctx.JSONE(http.StatusOK, "账号或者密码不正确，请重试", nil)
+		return
+	}
+
+	// 测试使用1分钟
+	// expireAt := time.Now().Add(time.Minute)
+	// 正常设置为30分钟，要将过期时间设置更长一些
+	expireAt := time.Now().Add(time.Minute * 30)
+	token, err := jwtx.GenerateToken(
+		jwtx.WithUserAgent(ctx.GetHeader("User-Agent")),
+		jwtx.WithSecretKey(jwtx.SecretKey),
+		jwtx.WithUserId(user.ID),
+		jwtx.WithExpireAt(expireAt),
+	)
+
+	if err != nil {
+		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+	// 将token放入响应头中
+	ctx.Header("x-jwt-token", token)
+
+	if err != nil {
+		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
+		return
+	}
+
+	ctx.JSONOK("登录成功", dto.LoginResp{
+		ID:   user.ID,
+		Name: user.Name,
+	})
+}
+
+// SendSMSLoginCode 发送短信验证码
+func (h *UserHandler) SendSMSLoginCode(ctx *ginx.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	// 你也可以用正则表达式校验是不是合法的手机号
+	if req.Phone == "" {
+		ctx.JSONE(http.StatusBadRequest, "请输入手机号码", nil)
+		return
+	}
+	err := h.codeSvc.Send(ctx, bizLoginType, req.Phone)
+	switch err {
+	case nil:
+		ctx.JSONOK("发送成功", nil)
+	case service.ErrCodeSendTooMany:
+		ctx.JSONE(http.StatusBadRequest, "短信发送太频繁，请稍后再试", nil)
+	default:
+		ctx.JSONE(http.StatusBadRequest, "系统错误", nil)
+
+		// 要打印日志
+		h.log.Errorf("发送短信验证码失败: %v", err)
+
+		return
+	}
 }
 
 func (h *UserHandler) Register(ctx *ginx.Context) {
@@ -203,6 +299,6 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 }
 
 func isValidDate(date string) bool {
-	_, err := time.Parse("2006-01-02", date)
+	_, err := time.Parse(time.DateOnly, date)
 	return err == nil
 }

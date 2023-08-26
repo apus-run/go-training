@@ -53,6 +53,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 	userModel := model.User{}
 	userModel, _ = userModel.FromEntity(userEntity).(model.User)
 
+	// 如果ID为0, 则是创建, 否则是更新
 	if userModel.ID == 0 {
 		// Insert
 		_, err := ur.dao.Insert(ctx, userModel)
@@ -61,7 +62,13 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 		}
 	} else {
 		// Update
-		return ur.dao.Update(ctx, userModel)
+		err := ur.dao.Update(ctx, userModel)
+		if err != nil {
+			return err
+		}
+
+		// 删除 Redis 中的缓存
+		return ur.cache.Del(ctx, userEntity.ID)
 	}
 
 	// Map fresh record's data into Entity

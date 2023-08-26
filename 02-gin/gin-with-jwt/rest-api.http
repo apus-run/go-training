@@ -12,6 +12,23 @@ Content-Type: application/json
     "password": "123456"
 }
 
+### 用户注册
+POST http://localhost:8080/signup
+Content-Type: application/json
+
+{
+  "name": "moocss",
+  "email": "moocss@163.com",
+  "password": "123456",
+  "confirmPassword": "123456"
+}
+
+### 查看用户详情
+GET http://localhost:8080/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTMwMTk1NzAsIlVzZXJJRCI6MSwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikifQ.D96A6t0lB9T6zqe3-skYOs663iO3S4RF5V-Sw04osw8
+
+
+
 ### 根据用户ID, 查询用户
 GET http://localhost:8080/user/1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTE4ODk2ODksIlVzZXJJRCI6MSwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikifQ.W2pAx3lvdFMsw29OspgTJsLQzMQhkFUgSZC3kMHXJtY

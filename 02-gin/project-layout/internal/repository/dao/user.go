@@ -52,6 +52,11 @@ func (u *userDAO) Insert(ctx context.Context, userModel model.User) (uint64, err
 }
 
 func (u *userDAO) Update(ctx context.Context, userModel model.User) error {
+	// 这种写法是很不清晰的，因为它依赖了 gorm 的两个默认语义
+	// 会使用 ID 来作为 WHERE 条件
+	// 会使用非零值来更新
+	// 另外一种做法是显式指定只更新必要的字段，
+	// 那么这意味着 DAO 和 service 中非敏感字段语义耦合了
 	err := u.data.DB.WithContext(ctx).Updates(&userModel).Error
 	return err
 }

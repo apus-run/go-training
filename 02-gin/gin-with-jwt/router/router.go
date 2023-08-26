@@ -1,6 +1,5 @@
 package router
 
-import "C"
 import (
 	"log"
 	"net/http"
@@ -21,6 +20,7 @@ func Router() http.Handler {
 
 	r.Use(auth.NewBuilder().
 		IgnorePaths("/login").
+		IgnorePaths("/signup").
 		IgnorePaths("/ping").Build())
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -51,7 +51,7 @@ func Router() http.Handler {
 			claims.UserAgent = c.Request.UserAgent()
 
 			// 过期时间为30分钟, 测试使用1分钟过期
-			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute * 1))
+			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute * 30))
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 			tokenStr, err := token.SignedString([]byte(auth.TokenKey))
 			if err != nil {
@@ -76,6 +76,85 @@ func Router() http.Handler {
 		})
 	})
 
+	r.POST("/signup", func(c *gin.Context) {
+		type SignupReq struct {
+			Name            string `json:"name"`
+			Email           string `json:"email"`
+			Password        string `json:"password"`
+			ConfirmPassword string `json:"confirmPassword"`
+		}
+
+		var req SignupReq
+		// 当我们调用 Bind 方法的时候，如果有问题，Bind 方法已经直接写响应回去了
+		if err := c.Bind(&req); err != nil {
+			return
+		}
+
+		if req.Name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": 400,
+				"msg":  "用户名不能为空",
+			})
+			return
+		}
+		if len(req.Name) < 2 || len(req.Name) > 20 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": 400,
+				"msg":  "真实姓名为2 ~ 20个字符",
+			})
+			return
+		}
+
+		if len(req.Email) < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": 400,
+				"msg":  "邮箱不能为空",
+			})
+
+			return
+		}
+
+		if len(req.Password) < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": 400,
+				"msg":  "密码不能为空",
+			})
+
+			return
+		}
+
+		if len(req.ConfirmPassword) < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": 400,
+				"msg":  "确认密码不能为空",
+			})
+
+			return
+		}
+
+		if req.Password != req.ConfirmPassword {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 200,
+				"msg":  "两次输入的密码不一致",
+			})
+			return
+		}
+
+		data := &model.User{
+			Name:     req.Name,
+			Email:    req.Email,
+			Password: req.ConfirmPassword,
+		}
+
+		log.Println(data)
+
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"msg":  "注册成功",
+		})
+
+	})
+
 	r.GET("/user/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
@@ -88,6 +167,21 @@ func Router() http.Handler {
 			"msg":  "success",
 			"data": gin.H{
 				"id":    id,
+				"name":  data.Name,
+				"email": data.Email,
+			},
+		})
+	})
+
+	r.GET("/profile", func(c *gin.Context) {
+		data := &model.User{
+			Name:  "foo",
+			Email: "foo@gmail.com",
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"msg":  "success",
+			"data": gin.H{
 				"name":  data.Name,
 				"email": data.Email,
 			},

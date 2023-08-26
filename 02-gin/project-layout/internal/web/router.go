@@ -50,6 +50,8 @@ func (r *Router) Load(g *gin.Engine) {
 	ug := g.Group("/v1/user")
 	{
 		ug.POST("/login", ginx.Handle(r.userHandler.Login))
+		ug.POST("/login_sms/code/send", ginx.Handle(r.userHandler.SendSMSLoginCode))
+		ug.POST("/login_sms", ginx.Handle(r.userHandler.LoginSMS))
 		ug.POST("/register", ginx.Handle(r.userHandler.Register))
 		ug.GET("/profile", ginx.Handle(r.userHandler.Profile))
 		ug.POST("/update/profile", ginx.Handle(r.userHandler.UpdateProfile))

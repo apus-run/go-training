@@ -21,7 +21,7 @@ func TestRouter(t *testing.T) {
 
 	e.GET("/ping").
 		Expect().
-		Status(http.StatusOK).JSON().Object().HasValue("msg", "pong")
+		Status(http.StatusOK).JSON().Object().ValueEqual("msg", "pong")
 
 	obj := e.GET("/user/1").Expect().Status(http.StatusOK).JSON().Object()
 	obj.Keys().ContainsOnly("user", "id")

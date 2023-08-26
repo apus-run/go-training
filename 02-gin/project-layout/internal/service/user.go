@@ -108,3 +108,15 @@ func (us *userService) UpdateProfile(ctx context.Context, user entity.User) erro
 	}
 	return nil
 }
+
+// UpdateNonSensitiveProfile 更新非敏感数据
+// 你可以在这里进一步补充究竟哪些数据会被更新
+func (us *userService) UpdateNonSensitiveProfile(ctx context.Context, user entity.User) error {
+	// 这种是复杂写法，依赖于 repository 中更新会忽略 0 值
+	// 这个转换的意义在于，你在 service 层面上维护住了什么是敏感字段这个语义
+	user.Email = ""
+	user.Phone = ""
+	user.Password = ""
+
+	return us.repo.Save(ctx, user)
+}
