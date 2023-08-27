@@ -14,7 +14,7 @@ import (
 	"project-layout/pkg/log"
 )
 
-var ErrUserDuplicateEmailOrPhone = dao.ErrUserDuplicateEmailOrPhone
+var ErrUserDuplicate = dao.ErrUserDuplicate
 var ErrUserDataNotFound = dao.ErrRecordNotFound
 
 type UserRepository interface {
@@ -51,7 +51,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 	ur.log.Info("create or update user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
-	userModel, _ = userModel.FromEntity(userEntity).(model.User)
+	userModel = userModel.FromEntity(userEntity).(model.User)
 
 	// 如果ID为0, 则是创建, 否则是更新
 	if userModel.ID == 0 {
@@ -61,7 +61,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 			return err
 		}
 	} else {
-		// Update
+		// Update 更新数据，只有非 0 值才会更新
 		err := ur.dao.Update(ctx, userModel)
 		if err != nil {
 			return err
@@ -83,7 +83,7 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 	ur.log.Info("save and cache user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
-	userModel, _ = userModel.FromEntity(userEntity).(model.User)
+	userModel = userModel.FromEntity(userEntity).(model.User)
 
 	// Save the data into DB
 	id, err := ur.dao.Insert(ctx, userModel)
@@ -109,7 +109,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	ur.log.Info("remove user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
-	userModel, _ = userModel.FromEntity(user).(model.User)
+	userModel = userModel.FromEntity(user).(model.User)
 
 	// Remove the data from DB
 	err := ur.dao.Delete(ctx, userModel)

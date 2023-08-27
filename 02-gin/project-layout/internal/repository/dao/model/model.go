@@ -6,8 +6,8 @@ import (
 
 type Model[E any] interface {
 	TableName() string
-	ToEntity() E      // Creates new Entity from ORM model.
-	FromEntity(E) any // Creates new ORM model from Entity.
+	ToEntity() E             // Creates new Entity from ORM model.
+	FromEntity(entity E) any // Creates new ORM model from Entity.
 
 	Value() (driver.Value, error)   // Value returns driver Value from ORM model.
 	Scan(any) error                 // Scan assigns a value from a database driver.

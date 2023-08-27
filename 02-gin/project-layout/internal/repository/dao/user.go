@@ -12,7 +12,7 @@ import (
 )
 
 var ErrRecordNotFound = errors.New("record not found")
-var ErrUserDuplicateEmailOrPhone = errors.New("email or phone number already exists")
+var ErrUserDuplicate = errors.New("email or phone number already exists")
 var DuplicateEntryErrCode uint16 = 1062
 
 // UserDAO ... 数据访问层相关接口定义, 使用 DB 风格的命名
@@ -44,7 +44,8 @@ func (u *userDAO) Insert(ctx context.Context, userModel model.User) (uint64, err
 
 	if mysqlErr, ok := err.(*mysql.MySQLError); ok {
 		if mysqlErr.Number == DuplicateEntryErrCode {
-			return 0, errors.Wrap(ErrUserDuplicateEmailOrPhone, mysqlErr.Error())
+			// 邮箱或者手机号冲突
+			return 0, errors.Wrap(ErrUserDuplicate, mysqlErr.Error())
 		}
 	}
 

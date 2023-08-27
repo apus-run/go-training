@@ -25,11 +25,11 @@ type User struct {
 	Password string
 	Phone    string
 
-	Gender   int    // 性别
-	NickName string // 昵称
-	RealName string // 真实姓名
-	Birthday string // 生日
-	Profile  string // 个人简介
+	Gender   int       // 性别
+	NickName string    // 昵称
+	RealName string    // 真实姓名
+	Birthday time.Time // 生日
+	Profile  string    // 个人简介
 
 	CreatedTime time.Time  // 创建时间
 	UpdatedTime time.Time  // 更新时间
@@ -43,7 +43,6 @@ func (u *User) Validate() error {
 
 	if len(u.Password) == 0 {
 		return ErrInvalidPassword
-
 	}
 
 	ok, err := regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, u.Email)

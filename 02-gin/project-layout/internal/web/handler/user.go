@@ -232,7 +232,7 @@ func (h *UserHandler) Profile(ctx *ginx.Context) {
 		Gender:   user.Gender,
 		NickName: user.NickName,
 		RealName: user.RealName,
-		Birthday: user.Birthday,
+		Birthday: user.Birthday.Format(time.DateOnly),
 		Profile:  user.Profile,
 	})
 }
@@ -268,8 +268,11 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 		ctx.JSONE(http.StatusBadRequest, "生日不能为空", nil)
 		return
 	}
-	if !isValidDate(req.Birthday) {
-		ctx.JSONE(http.StatusBadRequest, "生日格式错误", nil)
+
+	// TODO: 其实没有必要直接校验具体的格式 而是应该校验日期的有效性
+	birthday, err := time.Parse(time.DateOnly, req.Birthday)
+	if err != nil {
+		ctx.JSONE(http.StatusBadRequest, "日期格式错误", nil)
 		return
 	}
 
@@ -286,7 +289,7 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 		Gender:   req.Gender,
 		NickName: req.NickName,
 		RealName: req.RealName,
-		Birthday: req.Birthday,
+		Birthday: birthday,
 		Profile:  req.Profile,
 	})
 
@@ -296,9 +299,4 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 	}
 
 	ctx.JSONOK("用户信息更新成功", nil)
-}
-
-func isValidDate(date string) bool {
-	_, err := time.Parse(time.DateOnly, date)
-	return err == nil
 }

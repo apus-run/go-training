@@ -11,7 +11,7 @@ import (
 	"project-layout/pkg/log"
 )
 
-var ErrUserDuplicateEmailOrPhone = repository.ErrUserDuplicateEmailOrPhone
+var ErrUserDuplicate = repository.ErrUserDuplicate
 var ErrInvalidUserOrPassword = errors.New("邮箱或者密码不正确")
 
 type UserService interface {

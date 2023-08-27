@@ -1,32 +1,37 @@
 package model
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"time"
 
 	"project-layout/internal/domain/entity"
 )
 
 var _ Model[entity.User] = (*User)(nil)
 
+// User ... sql.NullXXX 类型是为了方便处理 null 值; 空字符串是导致索引失效的罪魁祸首, 所以我们使用 sql.NullXXX
 type User struct {
 	ID uint64 `gorm:"primaryKey,autoIncrement"`
 
-	Name     string `gorm:"type:varchar(20) not null;display:'';comment:'用户名'"`
-	Avatar   string `gorm:"type:varchar(200);not null;display:'';comment:'头像'"`
-	Email    string `gorm:"type:varchar(50);uniqueIndex;not null;display:'';comment:'邮箱'"` // 设置邮箱为唯一索引
-	Password string `gorm:"type:varchar(150);not null;display:'';comment:'密码'"`
-	Phone    string `gorm:"type:varchar(20);unique;not null;display:'';comment:'手机号'"`
+	Name   string `gorm:"type:varchar(20) not null;comment:'用户名'"`
+	Avatar string `gorm:"type:varchar(200);not null;comment:'头像'"`
+	// 设置邮箱为唯一索引
+	Email    sql.NullString `gorm:"type:varchar(50);unique;not null;comment:'邮箱'"`
+	Password string         `gorm:"type:varchar(150);not null;comment:'密码'"`
+	// 设置手机号为唯一索引
+	Phone sql.NullString `gorm:"type:varchar(20);unique;not null;comment:'手机号'"`
 
-	Gender   int    `gorm:"display:1;comment:'性别'"`
-	NickName string `gorm:"type:varchar(20);display:'';comment:'昵称'"`
-	RealName string `gorm:"type:varchar(20);display:'';comment:'真实姓名'"`
-	Birthday string `gorm:"type:varchar(20);display:'';comment:'生日'"`
-	Profile  string `gorm:"type:varchar(255);display:'';comment:'个人简介'"`
+	Gender   int           `gorm:"display:1;comment:'性别'"`
+	NickName string        `gorm:"type:varchar(20);comment:'昵称'"`
+	RealName string        `gorm:"type:varchar(20);comment:'真实姓名'"`
+	Birthday sql.NullInt64 `gorm:"comment:'生日'"`
+	Profile  string        `gorm:"type:varchar(255);comment:'个人简介'"`
 
 	CreatedTime int64 `gorm:"autoCreateTime;not null;comment:'创建时间'"`
 	UpdatedTime int64 `gorm:"autoUpdateTime;not null;comment:'更新时间'"`
-	DeletedTime int64 `gorm:"index;not null;display:0;comment:'删除时间'"`
+	DeletedTime int64 `gorm:"index;not null;comment:'删除时间'"`
 }
 
 // The TableName method returns the name of the data table that the struct is mapped to.
@@ -38,19 +43,25 @@ func (u *User) ToEntity() entity.User {
 	if u == nil {
 		return entity.User{}
 	}
+	var birthday time.Time
+	if u.Birthday.Valid {
+		birthday = time.UnixMilli(u.Birthday.Int64)
+	}
 	return entity.User{
 		ID:       u.ID,
 		Name:     u.Name,
 		Avatar:   u.Avatar,
-		Email:    u.Email,
+		Email:    u.Email.String,
 		Password: u.Password,
-		Phone:    u.Phone,
+		Phone:    u.Phone.String,
 
 		Gender:   u.Gender,
 		NickName: u.NickName,
 		RealName: u.RealName,
-		Birthday: u.Birthday,
+		Birthday: birthday,
 		Profile:  u.Profile,
+
+		CreatedTime: time.UnixMilli(u.CreatedTime),
 	}
 }
 
@@ -62,18 +73,27 @@ func (u *User) FromEntity(userEntity entity.User) any {
 		return err
 	}
 	return User{
-		ID:       userEntity.ID,
-		Name:     userEntity.Name,
-		Avatar:   userEntity.Avatar,
-		Email:    userEntity.Email,
+		ID:     userEntity.ID,
+		Name:   userEntity.Name,
+		Avatar: userEntity.Avatar,
+		Email: sql.NullString{
+			String: userEntity.Email,
+			Valid:  userEntity.Email != "",
+		},
 		Password: userEntity.Password,
-		Phone:    userEntity.Phone,
+		Phone: sql.NullString{
+			String: userEntity.Phone,
+			Valid:  userEntity.Phone != "",
+		},
 
 		Gender:   userEntity.Gender,
 		NickName: userEntity.NickName,
 		RealName: userEntity.RealName,
-		Birthday: userEntity.Birthday,
-		Profile:  userEntity.Profile,
+		Birthday: sql.NullInt64{
+			Int64: userEntity.Birthday.UnixMilli(),
+			Valid: !userEntity.Birthday.IsZero(),
+		},
+		Profile: userEntity.Profile,
 	}
 }
 
