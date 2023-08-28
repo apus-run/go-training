@@ -15,39 +15,46 @@ type Router struct {
 	userHandler *handler.UserHandler
 }
 
-func NewRouter(userHandler *handler.UserHandler) *Router {
+func NewRouter(userHandler *handler.UserHandler) ginx.Router {
 	router := &Router{
 		userHandler: userHandler,
 	}
 	return router
 }
 
-func (r *Router) Load(g *gin.Engine) {
+func (r *Router) Load(engine *gin.Engine) {
 	// 注册中间件
 	// -------------------------------------------------------
-	g.Use(cors.NewCORS(
-		// 允许前端发送
-		cors.WithAllowHeaders([]string{"Content-Type", "Authorization"}),
-		// 允许前端获取
-		cors.WithExposeHeaders([]string{"x-jwt-token"}),
-		cors.WithMaxAge(12*60*60),
-	).Build())
-	g.Use(auth.NewBuilder().
-		IgnorePaths("user/login").
-		IgnorePaths("user/register").Build())
+	engine.Use(
+		cors.NewCORS(
+			// 允许前端发送
+			cors.WithAllowHeaders([]string{"Content-Type", "Authorization"}),
+			// 允许前端获取
+			cors.WithExposeHeaders([]string{"x-jwt-token"}),
+			cors.WithMaxAge(12*60*60),
+		).Build(),
+	)
+	engine.Use(
+		auth.NewBuilder().
+			IgnorePaths("user/login").
+			IgnorePaths("user/login_sms/code/send").
+			IgnorePaths("user/login_sms").
+			IgnorePaths("user/register").
+			Build(),
+	)
 
 	// 公共路由
 	// -------------------------------------------------------
 	// 404
-	g.NoRoute(ginx.Handle(func(c *ginx.Context) {
+	engine.NoRoute(ginx.Handle(func(c *ginx.Context) {
 		c.JSONE(404, "404", nil)
 	}))
 	// ping server
-	g.GET("/ping", handler.Ping())
+	engine.GET("/ping", handler.Ping())
 
 	// 用户组
 	// -------------------------------------------------------
-	ug := g.Group("/v1/user")
+	ug := engine.Group("/v1/user")
 	{
 		ug.POST("/login", ginx.Handle(r.userHandler.Login))
 		ug.POST("/login_sms/code/send", ginx.Handle(r.userHandler.SendSMSLoginCode))
@@ -59,7 +66,7 @@ func (r *Router) Load(g *gin.Engine) {
 
 	// 新闻组
 	// -------------------------------------------------------
-	ag := g.Group("/v1/article")
+	ag := engine.Group("/v1/article")
 	{
 		ag.GET("/list", ginx.Handle(func(c *ginx.Context) {
 			fmt.Println("get article list")

@@ -46,3 +46,11 @@ type UserInfoResp struct {
 	Birthday string `json:"birthday"`
 	Profile  string `json:"profile"`
 }
+
+type SMSLoginReq struct {
+	Phone string `json:"phone"`
+	Code  string `json:"code"`
+}
+type SendSMSLoginCodeReq struct {
+	Phone string `json:"phone"`
+}

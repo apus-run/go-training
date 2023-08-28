@@ -36,8 +36,7 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService, logger
 
 func (h *UserHandler) Login(ctx *ginx.Context) {
 	var req dto.LoginReq
-	err := ctx.Bind(&req)
-	if err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 		return
 	}
@@ -73,12 +72,9 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 }
 
 func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
-	type Req struct {
-		Phone string `json:"phone"`
-		Code  string `json:"code"`
-	}
-	var req Req
+	var req dto.SMSLoginReq
 	if err := ctx.Bind(&req); err != nil {
+		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 	ok, err := h.codeSvc.Verify(ctx, bizLoginType, req.Phone, req.Code)
@@ -134,19 +130,26 @@ func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
 
 // SendSMSLoginCode 发送短信验证码
 func (h *UserHandler) SendSMSLoginCode(ctx *ginx.Context) {
-	type Req struct {
-		Phone string `json:"phone"`
-	}
-	var req Req
+	var req dto.SendSMSLoginCodeReq
 	if err := ctx.Bind(&req); err != nil {
+		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 		return
 	}
+
 	// 你也可以用正则表达式校验是不是合法的手机号
 	if req.Phone == "" {
 		ctx.JSONE(http.StatusBadRequest, "请输入手机号码", nil)
 		return
 	}
-	err := h.codeSvc.Send(ctx, bizLoginType, req.Phone)
+
+	isPhone, err := regexp.MustCompile(`^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$`, regexp.None).
+		MatchString(req.Phone)
+	if !isPhone || err != nil {
+		ctx.JSONE(http.StatusOK, "手机号不正确", nil)
+		return
+	}
+
+	err = h.codeSvc.Send(ctx, bizLoginType, req.Phone)
 	switch err {
 	case nil:
 		ctx.JSONOK("发送成功", nil)
@@ -164,9 +167,9 @@ func (h *UserHandler) SendSMSLoginCode(ctx *ginx.Context) {
 
 func (h *UserHandler) Register(ctx *ginx.Context) {
 	var req dto.RegisterReq
-	err := ctx.Bind(&req)
-	if err != nil {
-		ctx.JSONE(http.StatusOK, err.Error(), nil)
+	if err := ctx.Bind(&req); err != nil {
+		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
+		return
 	}
 
 	if req.Password != req.ConfirmPassword {
@@ -182,12 +185,19 @@ func (h *UserHandler) Register(ctx *ginx.Context) {
 		return
 	}
 
+	isPhone, err := regexp.MustCompile(`^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$`, regexp.None).
+		MatchString(req.Phone)
+	if !isPhone || err != nil {
+		ctx.JSONE(http.StatusOK, "手机号不正确", nil)
+		return
+	}
+
 	isEmail, err := regexp.
 		MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, regexp.None).
 		MatchString(req.Email)
 
 	if !isEmail || err != nil {
-		ctx.JSONE(http.StatusOK, "邮箱不合法", nil)
+		ctx.JSONE(http.StatusOK, "邮箱不正确", nil)
 		return
 	}
 
@@ -201,7 +211,7 @@ func (h *UserHandler) Register(ctx *ginx.Context) {
 		},
 	)
 
-	if errors.As(err, service.ErrUserDuplicateEmailOrPhone) {
+	if errors.Is(err, service.ErrUserDuplicate) {
 		ctx.JSONE(http.StatusOK, "邮箱或者手机号已经存在", nil)
 		return
 	}

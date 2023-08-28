@@ -1,4 +1,4 @@
-package code
+package cache
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	// go:embed lua/set_code.lua
+	//go:embed lua/set_code.lua
 	luaSetCode string
-	// go:embed lua/verify_code.lua
+	//go:embed lua/verify_code.lua
 	luaVerifyCode string
 
 	ErrCodeSendTooMany        = errors.New("发送验证码过于频繁")
