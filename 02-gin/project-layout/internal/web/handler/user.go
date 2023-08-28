@@ -65,10 +65,7 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 	// 将token放入响应头中
 	ctx.Header("x-jwt-token", token)
 
-	ctx.JSONOK("登录成功", dto.LoginResp{
-		ID:   user.ID,
-		Name: user.Name,
-	})
+	ctx.JSONOK("登录成功", nil)
 }
 
 func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
@@ -122,10 +119,7 @@ func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
 		return
 	}
 
-	ctx.JSONOK("登录成功", dto.LoginResp{
-		ID:   user.ID,
-		Name: user.Name,
-	})
+	ctx.JSONOK("登录成功", nil)
 }
 
 // SendSMSLoginCode 发送短信验证码
