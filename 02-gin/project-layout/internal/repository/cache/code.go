@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"project-layout/internal/infra"
 
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
@@ -32,9 +33,9 @@ type codeCache struct {
 	client redis.Cmdable
 }
 
-func NewCodeCache(cmd redis.Cmdable) CodeCache {
+func NewCodeCache(data *infra.Data) CodeCache {
 	return &codeCache{
-		client: cmd,
+		client: data.RDB,
 	}
 }
 

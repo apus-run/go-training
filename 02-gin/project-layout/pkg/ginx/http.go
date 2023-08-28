@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	_ "go.uber.org/automaxprocs"
 )
 
 // HttpServer 代表当前服务端实例

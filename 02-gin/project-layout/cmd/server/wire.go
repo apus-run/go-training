@@ -3,6 +3,15 @@
 package main
 
 import (
+	"github.com/google/wire"
+
+	"project-layout/internal/infra"
+	"project-layout/internal/repository"
+	"project-layout/internal/repository/cache"
+	"project-layout/internal/repository/dao"
+	"project-layout/internal/service"
+	"project-layout/internal/web"
+	"project-layout/internal/web/handler"
 	"project-layout/pkg/ginx"
 	"project-layout/pkg/log"
 )
@@ -28,7 +37,7 @@ func wireApp(*log.Logger) (*ginx.HttpServer, func(), error) {
 
 		// Service 部分
 		service.NewUserService,
-		sms.InitSmsService,
+		InitSmsService,
 		service.NewCodeService,
 
 		// Handler 部分
