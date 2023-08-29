@@ -1,3 +1,0 @@
-// domain entity
-
-package entity
