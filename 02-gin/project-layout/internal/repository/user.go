@@ -51,7 +51,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 	ur.log.Info("create or update user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
-	userModel = userModel.FromEntity(userEntity).(model.User)
+	userModel = userModel.FromEntity(userEntity)
 
 	// 如果ID为0, 则是创建, 否则是更新
 	if userModel.ID == 0 {
@@ -68,7 +68,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 		}
 
 		// 删除 Redis 中的缓存
-		return ur.cache.Del(ctx, userEntity.ID)
+		return ur.cache.Del(ctx, userEntity.ID())
 	}
 
 	// Map fresh record's data into Entity
@@ -83,7 +83,7 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 	ur.log.Info("save and cache user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
-	userModel = userModel.FromEntity(userEntity).(model.User)
+	userModel = userModel.FromEntity(userEntity)
 
 	// Save the data into DB
 	id, err := ur.dao.Insert(ctx, userModel)
@@ -109,7 +109,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	ur.log.Info("remove user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
-	userModel = userModel.FromEntity(user).(model.User)
+	userModel = userModel.FromEntity(user)
 
 	// Remove the data from DB
 	err := ur.dao.Delete(ctx, userModel)
@@ -118,7 +118,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	}
 
 	// Remove the data from cache
-	err = ur.cache.Del(ctx, user.ID)
+	err = ur.cache.Del(ctx, user.ID())
 	if err != nil {
 		return err
 	}

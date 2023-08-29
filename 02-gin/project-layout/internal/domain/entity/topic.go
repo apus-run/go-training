@@ -13,21 +13,21 @@ var ErrEmptyTopicCommentCount = errors.New("topic comment count is required")
 var ErrEmptyTopicComments = errors.New("topic comments is required")
 
 type Topic struct {
-	id           uint
-	userID       string
+	id           uint64
+	userID       uint64
 	title        string
 	content      string
 	commentCount int64
-	comments     []*Comment
+	comments     []Comment
 
 	ChangeTracker
 }
 
-func (t *Topic) ID() uint {
+func (t *Topic) ID() uint64 {
 	return t.id
 }
 
-func (t *Topic) UserID() string {
+func (t *Topic) UserID() uint64 {
 	return t.userID
 }
 
@@ -44,38 +44,39 @@ func (t *Topic) CommentCount() int64 {
 
 }
 
-func (t *Topic) Comments() []*Comment {
+func (t *Topic) Comments() []Comment {
 	return t.comments
 }
 
 // 实体的赋值方法
 // 实体的赋值方法可以变更属性，但是对外部也是不可见的，只能被实体的行为方法使用
+// ------------------------------------------------------------------------
 
-func (t *Topic) withID(id uint) *Topic {
+func (t *Topic) setID(id uint64) *Topic {
 	t.change()
 	t.id = id
 	return t
 }
 
-func (t *Topic) withUserID(userID string) *Topic {
+func (t *Topic) setUserID(userID uint64) *Topic {
 	t.change()
 	t.userID = userID
 	return t
 }
 
-func (t *Topic) withContent(content string) *Topic {
+func (t *Topic) setContent(content string) *Topic {
 	t.change()
 	t.content = content
 	return t
 }
 
-func (t *Topic) withCommentCount(commentCount int64) *Topic {
+func (t *Topic) setCommentCount(commentCount int64) *Topic {
 	t.change()
 	t.commentCount = commentCount
 	return t
 }
 
-func (t *Topic) withComments(comments []*Comment) *Topic {
+func (t *Topic) setComments(comments []Comment) *Topic {
 	t.change()
 	t.comments = comments
 	return t
@@ -83,17 +84,18 @@ func (t *Topic) withComments(comments []*Comment) *Topic {
 
 // 实体行为方法
 // 行为方法对外部是可见的，外部只能通过调用实体的行为方法来改变实体的属性
+// ------------------------------------------------------------------------
 
 // AppendComment 聚合内一致性事务逻辑代码的实现
-func (t *Topic) AppendComment(comment *Comment) {
-	t.withComments(append(t.Comments(), comment))
-	t.withCommentCount(t.CommentCount() + 1)
+func (t *Topic) AppendComment(comment Comment) {
+	t.setComments(append(t.Comments(), comment))
+	t.setCommentCount(t.CommentCount() + 1)
 }
 
 // UpdateContent 变更话题内容
 func (t *Topic) UpdateContent(content string) {
 	// 判断字数不能超过多少字
-	t.withContent(content)
+	t.setContent(content)
 }
 
 // 实体行为方法
@@ -102,12 +104,12 @@ func (t *Topic) UpdateContent(content string) {
 // UpdateCommentCount 变更话题下的评论总数
 func (t *Topic) UpdateCommentCount(commentCount int64) {
 	// 判断字数不能超过多少字
-	t.withCommentCount(commentCount)
+	t.setCommentCount(commentCount)
 }
 
 // IncreaseCommentCount 增加评论总数
 func (t *Topic) IncreaseCommentCount(num int64) {
-	t.withCommentCount(t.CommentCount() + num)
+	t.setCommentCount(t.CommentCount() + num)
 }
 
 // DecreaseCommentCount 减少评论总数
@@ -117,12 +119,12 @@ func (t *Topic) DecreaseCommentCount(num int64) {
 		log.Panicf("commentCount 不能超过最小值：0")
 	}
 
-	t.withCommentCount(t.CommentCount() - num)
+	t.setCommentCount(t.CommentCount() - num)
 }
 
 // Validate 参数校验
 func (t *Topic) Validate() error {
-	if t.userID == "" {
+	if t.userID == 0 {
 		return ErrEmptyUserID
 	}
 	if t.title == "" {
@@ -141,18 +143,4 @@ func (t *Topic) Validate() error {
 	}
 
 	return nil
-}
-
-func NewTopic(userID, content string, commentCount int64, comments []*Comment) (*Topic, error) {
-	topic := &Topic{}
-	err := topic.Validate()
-	if err != nil {
-		return topic, err
-	}
-
-	return topic.
-		withUserID(userID).
-		withContent(content).
-		withCommentCount(commentCount).
-		withComments(comments), nil
 }

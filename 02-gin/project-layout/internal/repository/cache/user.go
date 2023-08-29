@@ -57,7 +57,7 @@ func (cache *userCache) SetOjb(ctx context.Context, user entity.User) error {
 	if err != nil {
 		return err
 	}
-	key := cache.key(user.ID)
+	key := cache.key(user.ID())
 	return cache.client.Set(ctx, key, string(data), cache.expire).Err()
 }
 

@@ -41,7 +41,7 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 	if errors.Is(err, repository.ErrUserDataNotFound) {
 		return userEntity, errors.Wrap(repository.ErrUserDataNotFound, fmt.Sprintf("通过邮箱查找用户失败: %v", err))
 	}
-	verify := userEntity.VerifyPassword(user.Password, password)
+	verify := userEntity.VerifyPassword(user.Password(), password)
 	if !verify {
 		return userEntity, ErrInvalidUserOrPassword
 	}
@@ -50,16 +50,18 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 
 func (us *userService) Register(ctx context.Context, user entity.User) (*entity.User, error) {
 	userEntity := &entity.User{}
-	hash, err := userEntity.GenerateHashPassword(user.Password)
+	hash, err := userEntity.GenerateHashPassword(user.Password())
 	if err != nil {
 		return userEntity, errors.Wrap(err, fmt.Sprintf("生成密码失败: %v", err))
 	}
-	user.Password = hash
+
+	user.UpdatePassword(hash)
+
 	err = us.repo.Save(ctx, user)
 	if err != nil {
 		return userEntity, errors.Wrap(err, fmt.Sprintf("保存用户失败: %v", err))
 	}
-	return &user, nil
+	return userEntity, nil
 }
 
 // FindOrCreate 通过手机号查找用户，如果不存在则创建
@@ -74,7 +76,9 @@ func (us *userService) FindOrCreate(ctx context.Context, phone string) (*entity.
 	}
 
 	// 注册成功后，再次获取用户信息
-	userEntity.Phone = phone
+	builder := entity.NewUserBuilder()
+	userEntity = builder.Phone(phone).Build()
+
 	err = us.repo.Save(ctx, *userEntity)
 	if err != nil {
 		return userEntity, err
@@ -89,20 +93,18 @@ func (us *userService) Profile(ctx context.Context, id uint64) (*entity.User, er
 }
 
 func (us *userService) UpdateProfile(ctx context.Context, user entity.User) error {
-	u, err := us.repo.FindByID(ctx, user.ID)
-	// 中间层 service 尽量不处理 dao 的 error, 直接透传到它的最上层.
-	if err != nil && !errors.Is(err, repository.ErrUserDataNotFound) {
-		return err
-	}
+	// 写法1
+	// 这种是简单的写法，依赖与 Web 层保证没有敏感数据被修改
+	// 也就是说，你的基本假设是前端传过来的数据就是不会修改 Email，Phone 之类的信息的。
+	//return svc.repo.Save(ctx, user)
 
-	u.ID = user.ID
-	u.Gender = user.Gender
-	u.NickName = user.NickName
-	u.RealName = user.RealName
-	u.Birthday = user.Birthday
-	u.Profile = user.Profile
-
-	err = us.repo.Save(ctx, *u)
+	// 写法2
+	// 这种是复杂写法，依赖于 repository 中更新会忽略 0 值
+	// 这个转换的意义在于，你在 service 层面上维护住了什么是敏感字段这个语义
+	user.UpdateEmail("")
+	user.UpdatePhone("")
+	user.UpdatePassword("")
+	err := us.repo.Save(ctx, user)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("更新用户失败: %v", err))
 	}
@@ -114,9 +116,8 @@ func (us *userService) UpdateProfile(ctx context.Context, user entity.User) erro
 func (us *userService) UpdateNonSensitiveProfile(ctx context.Context, user entity.User) error {
 	// 这种是复杂写法，依赖于 repository 中更新会忽略 0 值
 	// 这个转换的意义在于，你在 service 层面上维护住了什么是敏感字段这个语义
-	user.Email = ""
-	user.Phone = ""
-	user.Password = ""
-
+	user.UpdateEmail("")
+	user.UpdatePhone("")
+	user.UpdatePassword("")
 	return us.repo.Save(ctx, user)
 }
