@@ -1,16 +1,8 @@
 package entity
 
 import (
-	"log"
-
-	"github.com/pkg/errors"
+	"project-layout/pkg/log"
 )
-
-var ErrEmptyTopicID = errors.New("topic id is required")
-var ErrEmptyTopicTitle = errors.New("topic title is required")
-var ErrEmptyTopicContent = errors.New("topic content is required")
-var ErrEmptyTopicCommentCount = errors.New("topic comment count is required")
-var ErrEmptyTopicComments = errors.New("topic comments is required")
 
 type Topic struct {
 	id           uint64
@@ -18,10 +10,15 @@ type Topic struct {
 	title        string
 	content      string
 	commentCount int64
-	comments     []Comment
+	comments     []*Comment
 
 	ChangeTracker
 }
+
+// 实体的取值方法(get 关键字可以省略)
+// 1、用于业务逻辑上需要取值的地方
+// 2、用于基础设施层需要取值的地方
+// ------------------------------------------------------------------------
 
 func (t *Topic) ID() uint64 {
 	return t.id
@@ -44,7 +41,7 @@ func (t *Topic) CommentCount() int64 {
 
 }
 
-func (t *Topic) Comments() []Comment {
+func (t *Topic) Comments() []*Comment {
 	return t.comments
 }
 
@@ -76,7 +73,7 @@ func (t *Topic) setCommentCount(commentCount int64) *Topic {
 	return t
 }
 
-func (t *Topic) setComments(comments []Comment) *Topic {
+func (t *Topic) setComments(comments []*Comment) *Topic {
 	t.change()
 	t.comments = comments
 	return t
@@ -88,7 +85,7 @@ func (t *Topic) setComments(comments []Comment) *Topic {
 
 // AppendComment 聚合内一致性事务逻辑代码的实现
 func (t *Topic) AppendComment(comment Comment) {
-	t.setComments(append(t.Comments(), comment))
+	t.setComments(append(t.Comments(), &comment))
 	t.setCommentCount(t.CommentCount() + 1)
 }
 
@@ -116,31 +113,8 @@ func (t *Topic) IncreaseCommentCount(num int64) {
 func (t *Topic) DecreaseCommentCount(num int64) {
 	// 判断字数不能少于多少
 	if t.CommentCount()-num < 0 {
-		log.Panicf("commentCount 不能超过最小值：0")
+		log.Error("commentCount 不能超过最小值：0")
 	}
 
 	t.setCommentCount(t.CommentCount() - num)
-}
-
-// Validate 参数校验
-func (t *Topic) Validate() error {
-	if t.userID == 0 {
-		return ErrEmptyUserID
-	}
-	if t.title == "" {
-		return ErrEmptyTopicTitle
-	}
-
-	if t.content == "" {
-		return ErrEmptyTopicContent
-	}
-	if t.commentCount == 0 {
-		return ErrEmptyTopicCommentCount
-	}
-
-	if len(t.comments) == 0 {
-		return ErrEmptyTopicComments
-	}
-
-	return nil
 }

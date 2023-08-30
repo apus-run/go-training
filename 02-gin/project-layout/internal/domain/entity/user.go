@@ -1,20 +1,10 @@
 package entity
 
 import (
-	"regexp"
 	"time"
 
-	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var ErrEmptyUserID = errors.New("user id is required")
-var ErrEmptyUserName = errors.New("user name is required")
-var ErrEmptyUserEmail = errors.New("user email is required")
-var ErrEmptyUserPassword = errors.New("user password is required")
-var ErrInvalidUserName = errors.New("用户名不合法")
-var ErrInvalidPassword = errors.New("密码不合法")
-var ErrInvalidEmail = errors.New("邮箱不合法")
 
 // User 实体的属性对外部是不可见的
 type User struct {
@@ -39,6 +29,9 @@ type User struct {
 }
 
 // 实体的取值方法(get 关键字可以省略)
+// 1、用于业务逻辑上需要取值的地方
+// 2、用于基础设施层需要取值的地方
+// ------------------------------------------------------------------------
 
 func (u *User) ID() uint64 {
 	return u.id
@@ -170,22 +163,6 @@ func (u *User) setCreatedTime(createdTime time.Time) *User {
 	u.change()
 	u.createdTime = createdTime
 	return u
-}
-
-func (u *User) Validate() error {
-	if len(u.name) == 0 {
-		return ErrInvalidUserName
-	}
-
-	if len(u.password) == 0 {
-		return ErrInvalidPassword
-	}
-
-	ok, err := regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, u.email)
-	if !ok || err != nil {
-		return ErrInvalidEmail
-	}
-	return nil
 }
 
 // 实体行为方法

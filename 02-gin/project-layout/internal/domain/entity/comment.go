@@ -1,12 +1,5 @@
 package entity
 
-import (
-	"github.com/pkg/errors"
-)
-
-var ErrEmptyCommentID = errors.New("comment id is required")
-var ErrEmptyCommentContent = errors.New("comment content is required")
-
 type Comment struct {
 	id      uint64
 	topicID uint64
@@ -15,6 +8,11 @@ type Comment struct {
 
 	ChangeTracker
 }
+
+// 实体的取值方法(get 关键字可以省略)
+// 1、用于业务逻辑上需要取值的地方
+// 2、用于基础设施层需要取值的地方
+// ------------------------------------------------------------------------
 
 func (c *Comment) ID() uint64 {
 	return c.id
@@ -68,20 +66,4 @@ func (c *Comment) setContent(content string) *Comment {
 func (c *Comment) UpdateContent(content string) {
 	// 判断字数不能超过多少字
 	c.setContent(content)
-}
-
-// Validate 参数校验
-func (c *Comment) Validate() error {
-	if c.topicID == 0 {
-		return ErrEmptyTopicID
-	}
-	if c.userID == 0 {
-		return ErrEmptyUserID
-	}
-
-	if c.content == "" {
-		return ErrEmptyCommentContent
-	}
-
-	return nil
 }

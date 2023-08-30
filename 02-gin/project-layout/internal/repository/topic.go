@@ -36,9 +36,9 @@ func (tr *topicRepository) Save(ctx context.Context, topicEntity entity.Topic) (
 		err = tr.updateTopic(ctx, topicEntity)
 		for _, commentEntity := range topicEntity.Comments() {
 			if commentEntity.ID() > 0 {
-				_ = tr.updateComment(ctx, commentEntity)
+				_ = tr.updateComment(ctx, *commentEntity)
 			} else {
-				_ = tr.insertComment(ctx, commentEntity)
+				_ = tr.insertComment(ctx, *commentEntity)
 			}
 		}
 	} else {
