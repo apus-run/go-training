@@ -6,10 +6,17 @@ local expectedCode = ARGV[1]
 
 local cnt = tonumber(redis.call("get", cntKey))
 local code = redis.call("get", key)
+
+-- 如果验证码不存在
+if code == nil then
+    return -2
+end
+
 -- 验证次数已经耗尽了
 if cnt <= 0 then
     return -1
 end
+
 -- 验证码相等
 -- 不能删除验证码，因为如果你删除了就有可能有人跟你过不去
 -- 立刻再次再次发送验证码

@@ -2,12 +2,14 @@ package cache
 
 import (
 	"context"
-	_ "embed"
+	"errors"
 	"fmt"
-	"project-layout/internal/infra"
 
-	"github.com/pkg/errors"
+	_ "embed"
+
 	"github.com/redis/go-redis/v9"
+
+	"project-layout/internal/infra"
 )
 
 var (
