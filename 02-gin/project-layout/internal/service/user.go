@@ -2,9 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
 
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/repository"
@@ -39,7 +38,7 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 	userEntity := &entity.User{}
 	user, err := us.repo.FindByEmail(ctx, email)
 	if errors.Is(err, repository.ErrUserDataNotFound) {
-		return userEntity, errors.Wrap(repository.ErrUserDataNotFound, fmt.Sprintf("通过邮箱查找用户失败: %v", err))
+		return userEntity, fmt.Errorf("通过邮箱查找用户失败: %v", err)
 	}
 	verify := userEntity.VerifyPassword(user.Password(), password)
 	if !verify {
@@ -52,14 +51,14 @@ func (us *userService) Register(ctx context.Context, user entity.User) (*entity.
 	userEntity := &entity.User{}
 	hash, err := userEntity.GenerateHashPassword(user.Password())
 	if err != nil {
-		return userEntity, errors.Wrap(err, fmt.Sprintf("生成密码失败: %v", err))
+		return userEntity, fmt.Errorf("生成密码失败: %v", err)
 	}
 
 	user.UpdatePassword(hash)
 
 	err = us.repo.Save(ctx, user)
 	if err != nil {
-		return userEntity, errors.Wrap(err, fmt.Sprintf("保存用户失败: %v", err))
+		return userEntity, fmt.Errorf("保存用户失败: %v", err)
 	}
 	return userEntity, nil
 }
@@ -106,7 +105,7 @@ func (us *userService) UpdateProfile(ctx context.Context, user entity.User) erro
 	user.UpdatePassword("")
 	err := us.repo.Save(ctx, user)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("更新用户失败: %v", err))
+		return fmt.Errorf("更新用户失败: %v", err)
 	}
 	return nil
 }

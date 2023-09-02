@@ -1,9 +1,8 @@
 package ginx
 
 import (
+	"errors"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // Option is config option.

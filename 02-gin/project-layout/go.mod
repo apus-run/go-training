@@ -3,19 +3,18 @@ module project-layout
 go 1.19
 
 require (
+	github.com/coocood/freecache v1.2.3
 	github.com/dlclark/regexp2 v1.10.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/wire v0.5.0
-	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.3
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.730
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.730
-	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.11.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

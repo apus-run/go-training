@@ -1,7 +1,7 @@
 package jwtx
 
 import (
-	"github.com/pkg/errors"
+	"errors"
 	"time"
 )
 

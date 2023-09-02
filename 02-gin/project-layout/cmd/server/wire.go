@@ -4,10 +4,10 @@ package main
 
 import (
 	"github.com/google/wire"
-
 	"project-layout/internal/infra"
 	"project-layout/internal/repository"
-	"project-layout/internal/repository/cache"
+	"project-layout/internal/repository/cache/code"
+	"project-layout/internal/repository/cache/user"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/service"
 	"project-layout/internal/web"
@@ -28,8 +28,9 @@ func wireApp(*log.Logger) (*ginx.HttpServer, func(), error) {
 		dao.NewUserDAO,
 
 		// Cache 部分
-		cache.NewUserCache,
-		cache.NewCodeCache,
+		user.NewUserRedisCache,
+		// code.NewCodeRedisCache,
+		code.NewCodeMemoryCache,
 
 		// Repository 部分
 		repository.NewUserRepository,

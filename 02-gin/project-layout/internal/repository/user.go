@@ -2,13 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"project-layout/internal/repository/cache/user"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"project-layout/internal/domain/entity"
-	"project-layout/internal/repository/cache"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/repository/dao/model"
 	"project-layout/pkg/log"
@@ -33,12 +33,12 @@ type UserRepository interface {
 // userRepository 使用了缓存
 type userRepository struct {
 	dao   dao.UserDAO
-	cache cache.UserCache
+	cache user.UserCache
 
 	log *log.Logger
 }
 
-func NewUserRepository(dao dao.UserDAO, cache cache.UserCache, logger *log.Logger) UserRepository {
+func NewUserRepository(dao dao.UserDAO, cache user.UserCache, logger *log.Logger) UserRepository {
 	return &userRepository{
 		dao:   dao,
 		cache: cache,
@@ -144,7 +144,7 @@ func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User
 	// 这里不只是返回这一种错误, 在上层打日志的时候还要看到底层出的是那种错误, 所以原始的错误信息也需要保留.
 	if err != nil {
 		if errors.Is(err, ErrUserDataNotFound) {
-			return userEntity, errors.Wrap(ErrUserDataNotFound, fmt.Sprintf("此用户不存在, err: %v", err))
+			return userEntity, fmt.Errorf("此用户不存在, err: %v", err)
 		} else {
 			return userEntity, err
 		}
@@ -170,7 +170,7 @@ func (ur *userRepository) FindByIdV1(ctx context.Context, id uint64) (*entity.Us
 	switch err {
 	case nil:
 		return &u, err
-	case cache.ErrKeyNotExist:
+	case user.ErrKeyNotExist:
 		userModel, err := ur.dao.FindByID(ctx, id)
 		if err != nil {
 			return nil, err

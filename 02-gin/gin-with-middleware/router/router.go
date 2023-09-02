@@ -2,34 +2,58 @@ package router
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
+	"gin-with-middleware/model"
+	"gin-with-middleware/router/middleware/auth"
+	ginslog "gin-with-middleware/router/middleware/slog"
 	"github.com/gin-gonic/gin"
-	jwt "github.com/golang-jwt/jwt/v5"
-
-	"gin-with-jwt/model"
-	"gin-with-jwt/router/middleware/auth"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Router() http.Handler {
 	log.Printf("load router")
 
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
+	// Create a slog logger, which:
+	//   - Logs to stdout.
+	w := os.Stdout
+	logger := slog.New(
+		slog.NewJSONHandler(
+			w,
+			&slog.HandlerOptions{
+				Level:     slog.LevelDebug,
+				AddSource: true,
+			},
+		),
+	)
+	logger.WithGroup("http").
+		With("environment", "production").
+		With("server", "gin/1.9.0").
+		With("server_start_time", time.Now()).
+		With("gin_mode", gin.EnvGinMode)
+	// [SetDefault]还更新了[log]包使用的默认logger
+	slog.SetDefault(logger)
 
-	r.Use(auth.NewBuilder().
+	gin.SetMode(gin.ReleaseMode)
+	engine := gin.New()
+
+	engine.Use(auth.NewBuilder().
 		IgnorePaths("/login").
 		IgnorePaths("/signup").
 		IgnorePaths("/ping").Build())
 
-	r.GET("/ping", func(c *gin.Context) {
+	engine.Use(ginslog.NewBuilder(logger).Build())
+
+	engine.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"msg": "pong",
 		})
 	})
 
-	r.POST("/login", func(c *gin.Context) {
+	engine.POST("/login", func(c *gin.Context) {
 		type UserRequest struct {
 			Email    string
 			Password string
@@ -76,7 +100,7 @@ func Router() http.Handler {
 		})
 	})
 
-	r.POST("/signup", func(c *gin.Context) {
+	engine.POST("/signup", func(c *gin.Context) {
 		type SignupReq struct {
 			Name            string `json:"name"`
 			Email           string `json:"email"`
@@ -155,7 +179,7 @@ func Router() http.Handler {
 
 	})
 
-	r.GET("/user/:id", func(c *gin.Context) {
+	engine.GET("/user/:id", func(c *gin.Context) {
 		id := c.Param("id")
 
 		data := &model.User{
@@ -173,7 +197,7 @@ func Router() http.Handler {
 		})
 	})
 
-	r.GET("/profile", func(c *gin.Context) {
+	engine.GET("/profile", func(c *gin.Context) {
 		data := &model.User{
 			Name:  "foo",
 			Email: "foo@gmail.com",
@@ -188,5 +212,5 @@ func Router() http.Handler {
 		})
 	})
 
-	return r
+	return engine
 }

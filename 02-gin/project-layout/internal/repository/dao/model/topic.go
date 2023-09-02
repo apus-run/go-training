@@ -25,7 +25,7 @@ func (t *Topic) ToEntity() entity.Topic {
 		return entity.Topic{}
 	}
 	// 构造comment
-	comments := make([]entity.Comment, 0, len(t.Comments))
+	comments := make([]*entity.Comment, 0, len(t.Comments))
 
 	for _, v := range t.Comments {
 		commentBuilder := entity.NewCommentBuilder()
@@ -34,7 +34,7 @@ func (t *Topic) ToEntity() entity.Topic {
 		commentBuilder.UserID(v.UserID)
 		commentBuilder.Content(v.Content)
 		commentEntity := commentBuilder.Build()
-		comments = append(comments, *commentEntity)
+		comments = append(comments, commentEntity)
 	}
 
 	// 构造topic

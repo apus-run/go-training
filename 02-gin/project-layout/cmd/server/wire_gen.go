@@ -9,7 +9,8 @@ package main
 import (
 	"project-layout/internal/infra"
 	"project-layout/internal/repository"
-	"project-layout/internal/repository/cache"
+	"project-layout/internal/repository/cache/code"
+	"project-layout/internal/repository/cache/user"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/service"
 	"project-layout/internal/web"
@@ -26,11 +27,11 @@ func wireApp(logger *log.Logger) (*ginx.HttpServer, func(), error) {
 	client := infra.NewRDB()
 	data, cleanup := infra.NewData(db, client, logger)
 	userDAO := dao.NewUserDAO(data)
-	userCache := cache.NewUserCache(data)
+	userCache := user.NewUserRedisCache(data)
 	userRepository := repository.NewUserRepository(userDAO, userCache, logger)
 	userService := service.NewUserService(userRepository, logger)
 	smsService := InitSmsService()
-	codeCache := cache.NewCodeCache(data)
+	codeCache := code.NewCodeMemoryCache()
 	codeRepository := repository.NewCodeRepository(codeCache)
 	codeService := service.NewCodeService(smsService, codeRepository)
 	userHandler := handler.NewUserHandler(userService, codeService, logger)

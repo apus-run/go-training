@@ -6,7 +6,7 @@ type TopicBuilder struct {
 	title        string
 	content      string
 	commentCount int64
-	comments     []Comment
+	comments     []*Comment
 }
 
 func NewTopicBuilder() *TopicBuilder {
@@ -38,7 +38,7 @@ func (b *TopicBuilder) CommentCount(commentCount int64) *TopicBuilder {
 	return b
 }
 
-func (b *TopicBuilder) Comment(comments []Comment) *TopicBuilder {
+func (b *TopicBuilder) Comment(comments []*Comment) *TopicBuilder {
 	b.comments = comments
 	return b
 }

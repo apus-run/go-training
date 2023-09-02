@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"gin-with-jwt/router"
+	"gin-with-middleware/router"
 )
 
 func main() {

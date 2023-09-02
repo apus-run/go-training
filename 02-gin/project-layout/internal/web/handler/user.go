@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	regexp "github.com/dlclark/regexp2"
-	"github.com/pkg/errors"
 
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/service"

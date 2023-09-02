@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 
-	"project-layout/internal/repository/cache"
+	"project-layout/internal/repository/cache/code"
 )
 
 var (
-	ErrCodeVerifyTooManyTimes = cache.ErrCodeVerifyTooManyTimes
-	ErrCodeSendTooMany        = cache.ErrCodeSendTooMany
+	ErrCodeVerifyTooManyTimes = code.ErrCodeVerifyTooManyTimes
+	ErrCodeSendTooMany        = code.ErrCodeSendTooMany
 )
 
 type CodeRepository interface {
@@ -18,10 +18,10 @@ type CodeRepository interface {
 }
 
 type codeRepository struct {
-	cache cache.CodeCache
+	cache code.CodeCache
 }
 
-func NewCodeRepository(cache cache.CodeCache) CodeRepository {
+func NewCodeRepository(cache code.CodeCache) CodeRepository {
 	return &codeRepository{
 		cache: cache,
 	}
