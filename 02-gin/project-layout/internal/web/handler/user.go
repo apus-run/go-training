@@ -162,12 +162,7 @@ func (h *UserHandler) SendSMSLoginCode(ctx *ginx.Context) {
 func (h *UserHandler) Register(ctx *ginx.Context) {
 	var req dto.RegisterReq
 	if err := ctx.Bind(&req); err != nil {
-		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
-		return
-	}
-
-	if req.Password != req.ConfirmPassword {
-		ctx.JSONE(http.StatusOK, "两次输入的密码不一致", nil)
+		ctx.JSONE(http.StatusBadRequest, "输入的参数格式不正确", nil)
 		return
 	}
 
@@ -179,7 +174,12 @@ func (h *UserHandler) Register(ctx *ginx.Context) {
 		return
 	}
 
-	isPhone, err := regexp.MustCompile(`^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$`, regexp.None).
+	if req.Password != req.ConfirmPassword {
+		ctx.JSONE(http.StatusOK, "两次输入的密码不一致", nil)
+		return
+	}
+
+	isPhone, err := regexp.MustCompile(`^1((3[\d])|(4[5,6,7,9])|(5[0-3,5-9])|(6[5-7])|(7[0-8])|(8[\d])|(9[1,8,9]))\d{8}$`, regexp.None).
 		MatchString(req.Phone)
 	if !isPhone || err != nil {
 		ctx.JSONE(http.StatusOK, "手机号不正确", nil)

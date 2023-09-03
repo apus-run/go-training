@@ -38,7 +38,7 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 	userEntity := &entity.User{}
 	user, err := us.repo.FindByEmail(ctx, email)
 	if errors.Is(err, repository.ErrUserDataNotFound) {
-		return userEntity, fmt.Errorf("通过邮箱查找用户失败: %v", err)
+		return userEntity, ErrInvalidUserOrPassword
 	}
 	verify := userEntity.VerifyPassword(user.Password(), password)
 	if !verify {
