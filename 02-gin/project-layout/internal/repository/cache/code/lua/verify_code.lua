@@ -7,13 +7,8 @@ local expectedCode = ARGV[1]
 local cnt = tonumber(redis.call("get", cntKey))
 local code = redis.call("get", key)
 
--- 如果验证码不存在
-if code == nil then
-    return -2
-end
-
--- 验证次数已经耗尽了
-if cnt <= 0 then
+--  如果验证码不存在, 验证次数已经耗尽了
+if code == nil or cnt <= 0 then
     return -1
 end
 

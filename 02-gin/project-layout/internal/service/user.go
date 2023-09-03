@@ -15,7 +15,7 @@ var ErrInvalidUserOrPassword = errors.New("邮箱或者密码不正确")
 
 type UserService interface {
 	Login(ctx context.Context, email, password string) (*entity.User, error)
-	Register(ctx context.Context, user entity.User) (*entity.User, error)
+	Register(ctx context.Context, user entity.User) error
 	FindOrCreate(ctx context.Context, phone string) (*entity.User, error)
 	Profile(ctx context.Context, id uint64) (*entity.User, error)
 	UpdateProfile(ctx context.Context, user entity.User) error
@@ -47,20 +47,19 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 	return user, nil
 }
 
-func (us *userService) Register(ctx context.Context, user entity.User) (*entity.User, error) {
+func (us *userService) Register(ctx context.Context, user entity.User) error {
 	userEntity := &entity.User{}
 	hash, err := userEntity.GenerateHashPassword(user.Password())
 	if err != nil {
-		return userEntity, fmt.Errorf("生成密码失败: %v", err)
+		return fmt.Errorf("生成密码失败: %v", err)
 	}
-
 	user.UpdatePassword(hash)
 
 	err = us.repo.Save(ctx, user)
 	if err != nil {
-		return userEntity, fmt.Errorf("保存用户失败: %v", err)
+		return fmt.Errorf("保存用户失败: %v", err)
 	}
-	return userEntity, nil
+	return nil
 }
 
 // FindOrCreate 通过手机号查找用户，如果不存在则创建

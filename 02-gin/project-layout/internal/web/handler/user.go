@@ -203,7 +203,7 @@ func (h *UserHandler) Register(ctx *ginx.Context) {
 		Password(req.Password).
 		Build()
 
-	_, err = h.svc.Register(
+	err = h.svc.Register(
 		ctx.Request.Context(),
 		*userEntity,
 	)
