@@ -19,9 +19,11 @@ func init() {
 func main() {
 	// 项目配置文件
 	flag.Parse()
-	c := conf.New(conf.WithSource(
-		file.NewSource(flagconf),
-	))
+	c := conf.New(
+		conf.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
 	c.Load()
 	c.Watch()
 

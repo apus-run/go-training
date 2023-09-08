@@ -21,47 +21,37 @@ func (t *Topic) TableName() string {
 }
 
 func (t *Topic) ToEntity() entity.Topic {
-	if t == nil {
-		return entity.Topic{}
-	}
 	// 构造comment
 	comments := make([]*entity.Comment, 0, len(t.Comments))
-
 	for _, v := range t.Comments {
-		commentBuilder := entity.NewCommentBuilder()
-		commentBuilder.ID(v.ID)
-		commentBuilder.TopicID(v.TopicID)
-		commentBuilder.UserID(v.UserID)
-		commentBuilder.Content(v.Content)
-		commentEntity := commentBuilder.Build()
+		commentEntity := &entity.Comment{}
+		commentEntity.ID = v.ID
+		commentEntity.TopicID = v.TopicID
+		commentEntity.UserID = v.UserID
+		commentEntity.Content = v.Content
 		comments = append(comments, commentEntity)
 	}
 
 	// 构造topic
-	topicBuilder := entity.NewTopicBuilder()
-	topicBuilder.ID(t.ID)
-	topicBuilder.UserID(t.UserID)
-	topicBuilder.Title(t.Title)
-	topicBuilder.Content(t.Content)
-	topicBuilder.CommentCount(t.CommentCount)
-	topicBuilder.Comment(comments)
-	topicEntity := topicBuilder.Build()
-
-	return *topicEntity
+	return entity.Topic{
+		ID:           t.ID,
+		UserID:       t.UserID,
+		Title:        t.Title,
+		Content:      t.Content,
+		CommentCount: t.CommentCount,
+		Comments:     comments,
+	}
 
 }
 
 func (t *Topic) FromEntity(topicEntity entity.Topic) Topic {
-	if t == nil {
-		return Topic{}
+	return Topic{
+		ID:           topicEntity.ID,
+		UserID:       topicEntity.UserID,
+		Title:        topicEntity.Title,
+		Content:      topicEntity.Content,
+		CommentCount: topicEntity.CommentCount,
 	}
-
-	t.ID = topicEntity.ID()
-	t.UserID = topicEntity.UserID()
-	t.Title = topicEntity.Title()
-	t.Content = topicEntity.Content()
-	t.CommentCount = topicEntity.CommentCount()
-	return *t
 }
 
 // MarshalBinary ...

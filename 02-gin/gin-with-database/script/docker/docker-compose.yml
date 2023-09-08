@@ -1,17 +1,28 @@
 version: '3.0'
 
 services:
-  db:
-    image: mysql:8.0.29
+  mysql:
+    image: mysql:8.0.31
+    container_name: mysql-web
     restart: always
-    command: --default-authentication-plugin=mysql_native_password
+    command:
+      # 将mysql8.0默认密码策略 修改为 原先 策略 (mysql8.0对其默认策略做了更改 会导致密码无法匹配)
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
     # 挂载文件
     volumes:
-      # 把主机的./script/mysql/目录挂载到容器的/docker-entrypoint-initdb.d/目录
+      # 把主机的./script/docker/mysql/目录挂载到容器的/docker-entrypoint-initdb.d/目录
       # docker-entrypoint-initdb.d/目录是mysql容器启动时会自动执行的sql脚本目录
       # 也就是说，我们可以把初始化数据库的sql脚本放到主机的./script/mysql/目录下
       # mysql容器启动时会自动执行这个目录下的sql脚本
-      - ./script/mysql/:/docker-entrypoint-initdb.d/
+      - ./mysql/:/docker-entrypoint-initdb.d/
+      # 数据挂载
+      - ./mysql/data/:/var/lib/mysql/
+      # 配置挂载
+      - ./mysql/conf/:/etc/mysql/conf.d/
     ports:
       # 指定端口映射关系
       # 把主机的13306端口映射到容器的3306端口
@@ -20,14 +31,39 @@ services:
       MYSQL_ROOT_PASSWORD: 123456
   redis:
     image: redis:latest
+    container_name: redis-web
     restart: always
     ports:
       - "16379:6379"
     environment:
+      # 时区上海
+      TZ: Asia/Shanghai
       # - ALLOW_EMPTY_PASSWORD: yes # 可以不设置密码
       REDIS_PASSWORD: 123456
-#       volumes:
-#          - ./script/redis/redis.conf:/usr/local/etc/redis/redis.conf
-#       command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      # 配置文件
+      - ./redis/conf:/usr/local/etc/redis/redis.conf
+      # 数据文件
+      - ./redis/data/:/redis/data/:rw
+    command: redis-server /usr/local/etc/redis/redis.conf
 
-
+#  nginx:
+#    image: nginx:1.22.1
+#    container_name: nginx-web
+#    environment:
+#      # 时区上海
+#      TZ: Asia/Shanghai
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    volumes:
+#      # 证书映射
+#      - ./nginx/cert:/etc/nginx/cert
+#      # 配置文件映射
+#      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+#      # 页面目录
+#      - ./nginx/html:/usr/share/nginx/html
+#      # 日志目录
+#      - ./nginx/log:/var/log/nginx
+#    privileged: true
+#    network_mode: "host"

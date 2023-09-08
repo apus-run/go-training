@@ -19,3 +19,4 @@
 vendor/
 vendor
 /Godeps/
+/02-gin/gin-with-database/script/docker/mysql/data

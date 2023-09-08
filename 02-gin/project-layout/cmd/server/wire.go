@@ -22,6 +22,7 @@ func wireApp(*log.Logger) (*ginx.HttpServer, func(), error) {
 		// 数据库 和 缓存
 		infra.NewDB,
 		infra.NewRDB,
+		infra.NewLocalDB(),
 		infra.NewData,
 
 		// DAO 部分

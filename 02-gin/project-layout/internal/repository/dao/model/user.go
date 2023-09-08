@@ -38,60 +38,50 @@ func (u *User) TableName() string {
 }
 
 func (u *User) ToEntity() entity.User {
-	if u == nil {
-		return entity.User{}
-	}
 	var birthday time.Time
 	if u.Birthday.Valid {
 		birthday = time.UnixMilli(u.Birthday.Int64)
 	}
 
-	builder := entity.NewUserBuilder()
-	userEntity := builder.ID(u.ID).
-		Name(u.Name).
-		Avatar(u.Avatar).
-		Email(u.Email.String).
-		Password(u.Password).
-		Phone(u.Phone.String).
-		Gender(u.Gender).
-		NickName(u.NickName).
-		RealName(u.RealName).
-		Birthday(birthday).
-		Profile(u.Profile).
-		CreatedTime(time.UnixMilli(u.CreatedTime)).
-		Build()
-
-	return *userEntity
+	return entity.User{
+		ID:          u.ID,
+		Name:        u.Name,
+		Avatar:      u.Avatar,
+		Email:       u.Email.String,
+		Password:    u.Password,
+		Phone:       u.Phone.String,
+		Gender:      u.Gender,
+		NickName:    u.NickName,
+		RealName:    u.RealName,
+		Birthday:    birthday,
+		Profile:     u.Profile,
+		CreatedTime: time.UnixMilli(u.CreatedTime),
+	}
 }
 
 func (u *User) FromEntity(userEntity entity.User) User {
-	if u == nil {
-		return User{}
+	return User{
+		ID:   userEntity.ID,
+		Name: userEntity.Name,
+		Email: sql.NullString{
+			String: userEntity.Email,
+			Valid:  userEntity.Email != "",
+		},
+		Avatar:   userEntity.Avatar,
+		Password: userEntity.Password,
+		Phone: sql.NullString{
+			String: userEntity.Phone,
+			Valid:  userEntity.Phone != "",
+		},
+		Gender:   userEntity.Gender,
+		NickName: userEntity.NickName,
+		RealName: userEntity.RealName,
+		Birthday: sql.NullInt64{
+			Int64: userEntity.Birthday.UnixMilli(),
+			Valid: !userEntity.Birthday.IsZero(),
+		},
+		Profile: userEntity.Profile,
 	}
-
-	u.ID = userEntity.ID()
-	u.Name = userEntity.Name()
-	u.Avatar = userEntity.Avatar()
-	u.Email = sql.NullString{
-		String: userEntity.Email(),
-		Valid:  userEntity.Email() != "",
-	}
-	u.Password = userEntity.Password()
-	u.Phone = sql.NullString{
-		String: userEntity.Phone(),
-		Valid:  userEntity.Phone() != "",
-	}
-
-	u.Gender = userEntity.Gender()
-	u.NickName = userEntity.NickName()
-	u.RealName = userEntity.RealName()
-	u.Birthday = sql.NullInt64{
-		Int64: userEntity.Birthday().UnixMilli(),
-		Valid: !userEntity.Birthday().IsZero(),
-	}
-	u.Profile = userEntity.Profile()
-
-	return *u
 }
 
 // MarshalBinary ...

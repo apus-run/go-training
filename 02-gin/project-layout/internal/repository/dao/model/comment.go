@@ -19,25 +19,21 @@ func (c *Comment) TableName() string {
 }
 
 func (c *Comment) ToEntity() entity.Comment {
-	commentBuilder := entity.NewCommentBuilder()
-	commentBuilder.ID(c.ID)
-	commentBuilder.TopicID(c.TopicID)
-	commentBuilder.UserID(c.UserID)
-	commentBuilder.Content(c.Content)
-	commentEntity := commentBuilder.Build()
-
-	return *commentEntity
+	return entity.Comment{
+		ID:      c.ID,
+		TopicID: c.TopicID,
+		UserID:  c.UserID,
+		Content: c.Content,
+	}
 }
 
 func (c *Comment) FromEntity(commentEntity entity.Comment) Comment {
-	if c == nil {
-		return Comment{}
+	return Comment{
+		ID:      commentEntity.ID,
+		UserID:  commentEntity.UserID,
+		TopicID: commentEntity.TopicID,
+		Content: commentEntity.Content,
 	}
-	c.ID = commentEntity.ID()
-	c.UserID = commentEntity.UserID()
-	c.TopicID = commentEntity.TopicID()
-	c.Content = commentEntity.Content()
-	return *c
 }
 
 // MarshalBinary ...

@@ -1,13 +1,13 @@
 package router
 
 import (
+	"gin-with-middleware/dao/model"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
-	"gin-with-middleware/model"
 	"gin-with-middleware/router/middleware/auth"
 	ginslog "gin-with-middleware/router/middleware/slog"
 	"github.com/gin-gonic/gin"

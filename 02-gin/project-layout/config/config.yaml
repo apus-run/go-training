@@ -11,6 +11,8 @@ data:
     db: 0
     read_timeout: 0.2s
     write_timeout: 0.2s
+  memory:
+    size: 10485760
 jwt:
   secret: "moyn8y9abnd7q4zkq2m73yw8tu9j5ixm"
   expire: 3600

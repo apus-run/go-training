@@ -1,33 +1,12 @@
 package entity
 
 type Comment struct {
-	id      uint64
-	topicID uint64
-	userID  uint64
-	content string
+	ID      uint64
+	TopicID uint64
+	UserID  uint64
+	Content string
 
 	ChangeTracker
-}
-
-// 实体的取值方法(get 关键字可以省略)
-// 1、用于业务逻辑上需要取值的地方
-// 2、用于基础设施层需要取值的地方
-// ------------------------------------------------------------------------
-
-func (c *Comment) ID() uint64 {
-	return c.id
-}
-
-func (c *Comment) TopicID() uint64 {
-	return c.topicID
-}
-
-func (c *Comment) UserID() uint64 {
-	return c.userID
-}
-
-func (c *Comment) Content() string {
-	return c.content
 }
 
 // 实体的赋值方法
@@ -36,25 +15,25 @@ func (c *Comment) Content() string {
 
 func (c *Comment) setID(id uint64) *Comment {
 	c.change()
-	c.id = id
+	c.ID = id
 	return c
 }
 
 func (c *Comment) setTopicID(topicID uint64) *Comment {
 	c.change()
-	c.topicID = topicID
+	c.TopicID = topicID
 	return c
 }
 
 func (c *Comment) setUserID(userID uint64) *Comment {
 	c.change()
-	c.userID = userID
+	c.UserID = userID
 	return c
 }
 
 func (c *Comment) setContent(content string) *Comment {
 	c.change()
-	c.content = content
+	c.Content = content
 	return c
 }
 

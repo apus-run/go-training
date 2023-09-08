@@ -1,17 +1,18 @@
-package repository
+package repo
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"project-layout/internal/repository/cache/user"
+	"github.com/redis/go-redis/v9"
+	"log"
+	"time"
 
-	"go.uber.org/zap"
+	"github.com/apus-run/sea-kit/cache"
 
-	"project-layout/internal/domain/entity"
-	"project-layout/internal/repository/dao"
-	"project-layout/internal/repository/dao/model"
-	"project-layout/pkg/log"
+	"gin-with-database/domain/entity"
+	"gin-with-database/repo/dao"
+	"gin-with-database/repo/dao/model"
 )
 
 var ErrUserDuplicate = dao.ErrUserDuplicate
@@ -33,22 +34,18 @@ type UserRepository interface {
 // userRepository 使用了缓存
 type userRepository struct {
 	dao   dao.UserDAO
-	cache user.UserCache
-
-	log *log.Logger
+	cache cache.Cache
 }
 
-func NewUserRepository(dao dao.UserDAO, cache user.UserCache, logger *log.Logger) UserRepository {
+func NewUserRepository(dao dao.UserDAO, cache cache.Cache) UserRepository {
 	return &userRepository{
 		dao:   dao,
 		cache: cache,
-		log:   logger,
 	}
 }
 
 // Save 保存用户信息到数据库
 func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) error {
-	ur.log.Info("create or update user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
 	userModel = userModel.FromEntity(userEntity)
@@ -68,7 +65,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 		}
 
 		// 删除 Redis 中的缓存
-		return ur.cache.Del(ctx, userEntity.ID())
+		return ur.cache.Del(ctx, ur.key(userEntity.ID))
 	}
 
 	// Map fresh record's data into Entity
@@ -80,7 +77,6 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 
 // SaveAndCache 保存用户信息到数据库和缓存
 func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.User) error {
-	ur.log.Info("save and cache user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
 	userModel = userModel.FromEntity(userEntity)
@@ -92,7 +88,7 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 	}
 
 	userModel.ID = id
-	err = ur.cache.SetOjb(ctx, userEntity)
+	err = ur.cache.SetObj(ctx, ur.key(id), userEntity, time.Minute*15)
 	if err != nil {
 		return err
 	}
@@ -106,7 +102,6 @@ func (ur *userRepository) SaveAndCache(ctx context.Context, userEntity entity.Us
 
 // Remove 从数据库和缓存中删除用户信息
 func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
-	ur.log.Info("remove user")
 	// Map the data from Entity to DO
 	userModel := model.User{}
 	userModel = userModel.FromEntity(user)
@@ -118,7 +113,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	}
 
 	// Remove the data from cache
-	err = ur.cache.Del(ctx, user.ID())
+	err = ur.cache.Del(ctx, ur.key(user.ID))
 	if err != nil {
 		return err
 	}
@@ -128,13 +123,12 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 
 // FindByID 从数据库和缓存中获取用户信息
 func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User, error) {
-	ur.log.Info("find user")
 	userEntity := &entity.User{}
 
 	// 1. 先从缓存中获取
-	res, err := ur.cache.GetObj(ctx, id)
+	err := ur.cache.GetObj(ctx, ur.key(id), userEntity)
 	if err == nil {
-		return &res, err
+		return userEntity, err
 	}
 
 	// 2. 缓存中没有，从数据库中获取
@@ -151,26 +145,25 @@ func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User
 	}
 
 	// Map fresh record's data into Entity
-	newEntity := userModel.ToEntity()
+	*userEntity = userModel.ToEntity()
 
 	// 3. 更新缓存
-	go func() {
-		err = ur.cache.SetOjb(ctx, newEntity)
-		if err != nil {
-			// 打日志, 做监控, 可以推断出缓存服务是否正常
-			ur.log.Error("set cache failed", zap.Error(err))
-		}
-	}()
+	err = ur.cache.SetObj(ctx, ur.key(id), userEntity, 1*time.Hour)
+	if err != nil {
+		log.Printf("更新缓存失败, 有可能是 Redis 服务器异常: %v", err)
+		// 打日志, 做监控, 可以推断出缓存服务是否正常
+	}
 
-	return &newEntity, nil
+	return userEntity, nil
 }
 
 func (ur *userRepository) FindByIdV1(ctx context.Context, id uint64) (*entity.User, error) {
-	u, err := ur.cache.GetObj(ctx, id)
+	userEntity := &entity.User{}
+	err := ur.cache.GetObj(ctx, ur.key(id), userEntity)
 	switch err {
 	case nil:
-		return &u, err
-	case user.ErrKeyNotExist:
+		return userEntity, err
+	case redis.Nil:
 		userModel, err := ur.dao.FindByID(ctx, id)
 		if err != nil {
 			return nil, err
@@ -182,14 +175,13 @@ func (ur *userRepository) FindByIdV1(ctx context.Context, id uint64) (*entity.Us
 		}
 		return &newEntity, nil
 	default:
-		return &entity.User{}, err
+		return userEntity, err
 	}
 }
 
 // FindUserPage 分页查询用户信息
 func (ur *userRepository) FindUserPage(ctx context.Context,
 	name string, page int64, size int64) ([]*entity.User, uint, bool, error) {
-	ur.log.Info("find user page by user name")
 	return nil, 0, true, nil
 }
 
@@ -221,4 +213,8 @@ func (ur *userRepository) FindByEmail(ctx context.Context, email string) (*entit
 	}
 
 	return &newEntity, nil
+}
+
+func (ur *userRepository) key(id uint64) string {
+	return fmt.Sprintf("user:info:%d", id)
 }

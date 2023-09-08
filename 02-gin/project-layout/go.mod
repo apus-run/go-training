@@ -3,6 +3,7 @@ module project-layout
 go 1.19
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/coocood/freecache v1.2.3
 	github.com/dlclark/regexp2 v1.10.0
 	github.com/fsnotify/fsnotify v1.6.0

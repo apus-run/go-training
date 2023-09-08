@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"project-layout/internal/repository/cache/user"
-
 	"go.uber.org/zap"
 
 	"project-layout/internal/domain/entity"
+	"project-layout/internal/repository/cache/user"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/repository/dao/model"
 	"project-layout/pkg/log"
@@ -68,7 +67,7 @@ func (ur *userRepository) Save(ctx context.Context, userEntity entity.User) erro
 		}
 
 		// 删除 Redis 中的缓存
-		return ur.cache.Del(ctx, userEntity.ID())
+		return ur.cache.Del(ctx, userEntity.ID)
 	}
 
 	// Map fresh record's data into Entity
@@ -118,7 +117,7 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 	}
 
 	// Remove the data from cache
-	err = ur.cache.Del(ctx, user.ID())
+	err = ur.cache.Del(ctx, user.ID)
 	if err != nil {
 		return err
 	}
@@ -128,11 +127,10 @@ func (ur *userRepository) Remove(ctx context.Context, user entity.User) error {
 
 // FindByID 从数据库和缓存中获取用户信息
 func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User, error) {
-	ur.log.Info("find user")
 	userEntity := &entity.User{}
 
 	// 1. 先从缓存中获取
-	res, err := ur.cache.Get(ctx, id)
+	res, err := ur.cache.GetObj(ctx, id)
 	if err == nil {
 		return &res, err
 	}
@@ -154,19 +152,17 @@ func (ur *userRepository) FindByID(ctx context.Context, id uint64) (*entity.User
 	newEntity := userModel.ToEntity()
 
 	// 3. 更新缓存
-	go func() {
-		err = ur.cache.SetOjb(ctx, newEntity)
-		if err != nil {
-			// 打日志, 做监控, 可以推断出缓存服务是否正常
-			ur.log.Error("set cache failed", zap.Error(err))
-		}
-	}()
+	err = ur.cache.SetOjb(ctx, newEntity)
+	if err != nil {
+		// 打日志, 做监控, 可以推断出缓存服务是否正常
+		ur.log.Error("set cache failed", zap.Error(err))
+	}
 
 	return &newEntity, nil
 }
 
 func (ur *userRepository) FindByIdV1(ctx context.Context, id uint64) (*entity.User, error) {
-	u, err := ur.cache.Get(ctx, id)
+	u, err := ur.cache.GetObj(ctx, id)
 	switch err {
 	case nil:
 		return &u, err

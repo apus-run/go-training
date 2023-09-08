@@ -53,7 +53,7 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 	token, err := jwtx.GenerateToken(
 		jwtx.WithUserAgent(ctx.Request.UserAgent()),
 		jwtx.WithSecretKey(jwtx.SecretKey),
-		jwtx.WithUserId(user.ID()),
+		jwtx.WithUserId(user.ID),
 		jwtx.WithExpireAt(expireAt),
 	)
 
@@ -103,7 +103,7 @@ func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
 	token, err := jwtx.GenerateToken(
 		jwtx.WithUserAgent(ctx.GetHeader("User-Agent")),
 		jwtx.WithSecretKey(jwtx.SecretKey),
-		jwtx.WithUserId(user.ID()),
+		jwtx.WithUserId(user.ID),
 		jwtx.WithExpireAt(expireAt),
 	)
 
@@ -195,17 +195,14 @@ func (h *UserHandler) Register(ctx *ginx.Context) {
 		return
 	}
 
-	builder := entity.NewUserBuilder()
-	userEntity := builder.
-		Name(req.Name).
-		Email(req.Email).
-		Phone(req.Phone).
-		Password(req.Password).
-		Build()
-
 	err = h.svc.Register(
 		ctx.Request.Context(),
-		*userEntity,
+		entity.User{
+			Name:     req.Name,
+			Email:    req.Email,
+			Password: req.Password,
+			Phone:    req.Phone,
+		},
 	)
 
 	if errors.Is(err, service.ErrUserDuplicate) {
@@ -234,13 +231,13 @@ func (h *UserHandler) Profile(ctx *ginx.Context) {
 	}
 
 	ctx.JSONOK("OK", dto.UserInfoResp{
-		Email:    user.Email(),
-		Phone:    user.Phone(),
-		Gender:   user.Gender(),
-		NickName: user.NickName(),
-		RealName: user.RealName(),
-		Birthday: user.Birthday().Format(time.DateOnly),
-		Profile:  user.Profile(),
+		Email:    user.Email,
+		Phone:    user.Phone,
+		Gender:   user.Gender,
+		NickName: user.NickName,
+		RealName: user.RealName,
+		Birthday: user.Birthday.Format(time.DateOnly),
+		Profile:  user.Profile,
 	})
 }
 
@@ -290,17 +287,14 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 
 	cs := ctx.MustGet("claims").(*jwtx.CustomClaims)
 
-	builder := entity.NewUserBuilder()
-	userEntity := builder.
-		ID(cs.UserID).
-		Gender(req.Gender).
-		NickName(req.NickName).
-		RealName(req.RealName).
-		Birthday(birthday).
-		Profile(req.Profile).
-		Build()
-
-	err = h.svc.UpdateProfile(ctx, *userEntity)
+	err = h.svc.UpdateProfile(ctx, entity.User{
+		ID:       cs.UserID,
+		Gender:   req.Gender,
+		NickName: req.NickName,
+		RealName: req.RealName,
+		Birthday: birthday,
+		Profile:  req.Profile,
+	})
 
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)

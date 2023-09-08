@@ -1,0 +1,9 @@
+{"level":"info","ts":"2023-09-07T20:59:35.064+0800","caller":"log/log.go:110","msg":"find user"}
+{"level":"info","ts":"2023-09-07T20:59:37.506+0800","caller":"log/log.go:110","msg":"find user"}
+{"level":"info","ts":"2023-09-07T20:59:43.062+0800","caller":"log/log.go:110","msg":"find user"}
+{"level":"info","ts":"2023-09-07T21:00:27.039+0800","caller":"log/log.go:110","msg":"create or update user"}
+{"level":"info","ts":"2023-09-07T21:00:33.315+0800","caller":"log/log.go:110","msg":"find user"}
+{"level":"info","ts":"2023-09-07T21:04:01.337+0800","caller":"log/log.go:110","msg":"create or update user"}
+{"level":"info","ts":"2023-09-07T21:04:08.969+0800","caller":"log/log.go:110","msg":"create or update user"}
+{"level":"info","ts":"2023-09-08T20:05:01.599+0800","caller":"log/log.go:110","msg":"create or update user"}
+{"level":"info","ts":"2023-09-08T20:06:31.667+0800","caller":"log/log.go:110","msg":"create or update user"}

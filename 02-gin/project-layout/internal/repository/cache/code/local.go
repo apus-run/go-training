@@ -10,13 +10,24 @@ import (
 )
 
 type codeMemoryCache struct {
-	local *freecache.Cache
+	local FreecacheClient
 }
 
-func NewCodeMemoryCache() CodeCache {
+func NewCodeMemoryCache(cache FreecacheClient) CodeCache {
 	return &codeMemoryCache{
-		local: freecache.NewCache(1024 * 1024 * 10),
+		local: cache,
 	}
+}
+
+type FreecacheClient interface {
+	Get(key []byte) (value []byte, err error)
+	GetInt(key int64) (value []byte, err error)
+	TTL(key []byte) (timeLeft uint32, err error)
+	Set(key, value []byte, expireSeconds int) (err error)
+	SetInt(key int64, value []byte, expireSeconds int) (err error)
+	Del(key []byte) (affected bool)
+	DelInt(key int64) (affected bool)
+	Clear()
 }
 
 func (m *codeMemoryCache) Set(ctx context.Context, biz, phone, code string) error {
@@ -97,6 +108,8 @@ func (m *codeMemoryCache) setCode(biz, phone, code string) int {
 		if err != nil {
 			return -2
 		}
+
+		fmt.Printf("成功%v", err)
 
 		// 设置成功
 		return 0

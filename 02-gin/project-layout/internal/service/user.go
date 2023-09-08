@@ -40,7 +40,7 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 	if errors.Is(err, repository.ErrUserDataNotFound) {
 		return userEntity, ErrInvalidUserOrPassword
 	}
-	verify := userEntity.VerifyPassword(user.Password(), password)
+	verify := userEntity.VerifyPassword(user.Password, password)
 	if !verify {
 		return userEntity, ErrInvalidUserOrPassword
 	}
@@ -49,23 +49,17 @@ func (us *userService) Login(ctx context.Context, email, password string) (*enti
 
 func (us *userService) Register(ctx context.Context, user entity.User) error {
 	userEntity := &entity.User{}
-	hash, err := userEntity.GenerateHashPassword(user.Password())
+	hash, err := userEntity.GenerateHashPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("生成密码失败: %v", err)
 	}
 	user.UpdatePassword(hash)
 
-	err = us.repo.Save(ctx, user)
-	if err != nil {
-		return fmt.Errorf("保存用户失败: %v", err)
-	}
-	return nil
+	return us.repo.Save(ctx, user)
 }
 
 // FindOrCreate 通过手机号查找用户，如果不存在则创建
 func (us *userService) FindOrCreate(ctx context.Context, phone string) (*entity.User, error) {
-	userEntity := &entity.User{}
-
 	// TODO: 一种优化写法, 大部分情况下都是查找到的
 	// 通过手机号查找用户, 如果不存在则创建
 	user, err := us.repo.FindByPhone(ctx, phone)
@@ -73,16 +67,15 @@ func (us *userService) FindOrCreate(ctx context.Context, phone string) (*entity.
 		return user, err
 	}
 
-	// 注册成功后，再次获取用户信息
-	builder := entity.NewUserBuilder()
-	userEntity = builder.Phone(phone).Build()
-
-	err = us.repo.Save(ctx, *userEntity)
-	if err != nil {
-		return userEntity, err
+	// 要执行注册
+	err = us.repo.Save(ctx, entity.User{
+		Phone: phone,
+	})
+	// 注册有问题，但是又不是用户手机号码冲突，说明是系统错误
+	if err != nil && err != repository.ErrUserDuplicate {
+		return &entity.User{}, err
 	}
-
-	// TODO: 如果是主从模式下，这里要从主库中读取
+	// 主从模式下，这里要从主库中读取，暂时我们不需要考虑
 	return us.repo.FindByPhone(ctx, phone)
 }
 

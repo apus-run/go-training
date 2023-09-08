@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"github.com/coocood/freecache"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -13,11 +14,27 @@ import (
 
 type Data struct {
 	DB  *gorm.DB
-	RDB *redis.Client
+	RDB redis.Cmdable
+}
+
+func (c *Data) CloseRDB() error {
+	return c.RDB.(*redis.Client).Close()
+}
+
+func (c *Data) CloseDB() error {
+	db, err := c.DB.DB()
+	if err != nil {
+		return err
+	}
+	if err := db.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // NewData return a new Data
-func NewData(db *gorm.DB, rdb *redis.Client, log *log.Logger) (*Data, func()) {
+func NewData(db *gorm.DB, rdb redis.Cmdable, log *log.Logger) (*Data, func()) {
 	data := &Data{
 		DB:  db,
 		RDB: rdb,
@@ -25,15 +42,12 @@ func NewData(db *gorm.DB, rdb *redis.Client, log *log.Logger) (*Data, func()) {
 
 	cleanup := func() {
 		log.Info("closing the data resources")
-		m, err := data.DB.DB()
+		err := data.CloseDB()
 		if err != nil {
 			log.Error(err.Error())
 		}
-		if err := m.Close(); err != nil {
-			log.Error(err.Error())
-		}
-
-		if err := data.RDB.Close(); err != nil {
+		err = data.CloseRDB()
+		if err != nil {
 			log.Error(err.Error())
 		}
 	}
@@ -73,4 +87,10 @@ func NewRDB() *redis.Client {
 	})
 
 	return rdb
+}
+
+func NewLocalDB() *freecache.Cache {
+	size := conf.Get("config", "data.memory.size").(int)
+	ldb := freecache.NewCache(size)
+	return ldb
 }

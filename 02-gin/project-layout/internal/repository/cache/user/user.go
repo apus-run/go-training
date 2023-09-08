@@ -26,10 +26,11 @@ type UserCache interface {
 	// 但是我们这里直接缓存全部
 	Set(ctx context.Context, key string, val string) error
 	SetOjb(ctx context.Context, user entity.User) error
-	Get(ctx context.Context, id uint64) (entity.User, error)
-	GetObj(ctx context.Context, key string, model interface{}) error
+	Get(ctx context.Context, key string) (string, error)
+	GetObj(ctx context.Context, id uint64) (entity.User, error)
 
 	Del(ctx context.Context, id uint64) error
+	DelMany(ctx context.Context, keys []string) error
 }
 
 type userRedisCache struct {
@@ -51,81 +52,39 @@ func (cache *userRedisCache) Set(ctx context.Context, key string, val string) er
 	return cache.client.Set(ctx, key, val, cache.expire).Err()
 }
 
-// SetObj 设置某个key和对象到缓存, 对象必须实现 https://pkg.go.dev/encoding#BinaryMarshaler
+// SetObj 设置某个key和对象到缓存中
 func (cache *userRedisCache) SetOjb(ctx context.Context, user entity.User) error {
 	data, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
-	key := cache.key(user.ID())
+	key := cache.key(user.ID)
 	return cache.client.Set(ctx, key, string(data), cache.expire).Err()
 }
 
-// SetMany 设置多个key和值到缓存
-func (cache *userRedisCache) SetMany(ctx context.Context, data map[string]string, timeout time.Duration) error {
-	pipline := cache.client.Pipeline()
-	cmds := make([]*redis.StatusCmd, 0, len(data))
-	for k, v := range data {
-		cmds = append(cmds, pipline.Set(ctx, k, v, timeout))
-	}
-	_, err := pipline.Exec(ctx)
-	return err
-}
-
-func (cache *userRedisCache) Get(ctx context.Context, id uint64) (entity.User, error) {
-	key := cache.key(id)
+func (cache *userRedisCache) Get(ctx context.Context, key string) (string, error) {
 	cmd := cache.client.Get(ctx, key)
 	// 数据不存在，cmd.Err = redis.Nil
+	if errors.Is(cmd.Err(), ErrKeyNotExist) {
+		return "", ErrKeyNotFound
+	}
+	return cmd.Result()
+}
+
+// GetObj 获取某个key对应的对象
+func (cache *userRedisCache) GetObj(ctx context.Context, id uint64) (entity.User, error) {
+	key := cache.key(id)
+
+	cmd := cache.client.Get(ctx, key)
 	if errors.Is(cmd.Err(), ErrKeyNotExist) {
 		return entity.User{}, ErrKeyNotFound
 	}
 
 	// 反序列化回来
-	var art entity.User
+	var u entity.User
 	data, _ := cmd.Bytes()
-	err := json.Unmarshal(data, &art)
-	return art, err
-}
-
-// GetObj 获取某个key对应的对象, 对象必须实现 https://pkg.go.dev/encoding#BinaryUnMarshaler
-func (cache *userRedisCache) GetObj(ctx context.Context, key string, model interface{}) error {
-	cmd := cache.client.Get(ctx, key)
-	if errors.Is(cmd.Err(), redis.Nil) {
-		return ErrKeyNotFound
-	}
-
-	err := cmd.Scan(model)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// GetMany 获取某些key对应的值
-func (cache *userRedisCache) GetMany(ctx context.Context, keys []string) (map[string]string, error) {
-	pipeline := cache.client.Pipeline()
-	vals := make(map[string]string)
-	cmds := make([]*redis.StringCmd, 0, len(keys))
-
-	for _, key := range keys {
-		cmds = append(cmds, pipeline.Get(ctx, key))
-	}
-
-	_, err := pipeline.Exec(ctx)
-	if err != nil {
-		return nil, err
-	}
-	errs := make([]string, 0, len(keys))
-	for _, cmd := range cmds {
-		val, err := cmd.Result()
-		if err != nil {
-			errs = append(errs, err.Error())
-			continue
-		}
-		key := cmd.Args()[1].(string)
-		vals[key] = val
-	}
-	return vals, nil
+	err := json.Unmarshal(data, &u)
+	return u, err
 }
 
 func (cache *userRedisCache) Del(ctx context.Context, id uint64) error {
@@ -141,28 +100,6 @@ func (cache *userRedisCache) DelMany(ctx context.Context, keys []string) error {
 	}
 	_, err := pipline.Exec(ctx)
 	return err
-}
-
-func (cache *userRedisCache) Calc(ctx context.Context, key string, step int64) (int64, error) {
-	return cache.client.IncrBy(ctx, key, step).Result()
-}
-
-func (cache *userRedisCache) Increment(ctx context.Context, key string) (int64, error) {
-	return cache.client.IncrBy(ctx, key, 1).Result()
-}
-
-func (cache *userRedisCache) Decrement(ctx context.Context, key string) (int64, error) {
-	return cache.client.IncrBy(ctx, key, -1).Result()
-}
-
-// SetTTL 设置某个key的超时时间
-func (cache *userRedisCache) SetTTL(ctx context.Context, key string, timeout time.Duration) error {
-	return cache.client.Expire(ctx, key, timeout).Err()
-}
-
-// GetTTL 获取某个key的超时时间
-func (cache *userRedisCache) GetTTL(ctx context.Context, key string) (time.Duration, error) {
-	return cache.client.TTL(ctx, key).Result()
 }
 
 func (cache *userRedisCache) key(id uint64) string {

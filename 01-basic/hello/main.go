@@ -1,35 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"time"
+)
 
 type User struct {
-	ID   uint64
-	Name string
-}
-type MUser struct {
-	ID   uint64
-	Name string
-}
+	ID       uint64
+	Name     string // 账户名
+	Email    string
+	Password string
+	Phone    string
 
-func (u *MUser) ToEntity() User {
-	return User{
-		ID:   u.ID,
-		Name: u.Name,
-	}
-}
-
-func (u *MUser) FromEntity() User {
-	return User{
-		ID:   1,
-		Name: "kami",
-	}
+	CreatedTime time.Time  // 创建时间
+	UpdatedTime time.Time  // 更新时间
+	DeletedTime *time.Time // 删除时间
 }
 
 func main() {
-	user := &MUser{}
-	fmt.Println("------->", user.ToEntity())
-	user2 := MUser{}
-	fmt.Println("------->", user2.ToEntity())
 
 	// user := &User{}
 	//u := &User{} // u := new(User)

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	repomocks "project-layout/internal/repository/mocks"
 	"testing"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/repository"
+	repomocks "project-layout/internal/repository/mocks"
 )
 
 func Test_userService_Login(t *testing.T) {
@@ -39,14 +39,15 @@ func Test_userService_Login(t *testing.T) {
 				repo := repomocks.NewMockUserRepository(ctrl)
 				repo.EXPECT().
 					FindByEmail(gomock.Any(), gomock.Any()).
-					Return(entity.NewUserBuilder().
-						ID(1).
-						Name("moocss").
-						Email("moocss@160.com").
-						Password("$2a$10$5QUjLai8/7BHI4IRqoGh1Ou4Bg82dAo9FPybwcAQl23E.KedwvDKO").
-						Phone("13401234567").
-						CreatedTime(now).
-						Build(), nil)
+					Return(
+						&entity.User{
+							ID:          1,
+							Name:        "moocss",
+							Email:       "moocss@160.com",
+							Password:    "$2a$10$3FgSVRUpi.9.UferU0SxC.nGw8Y2eh6yjSqGO8nUcF0CfYbKlrZbS",
+							Phone:       "13401234567",
+							CreatedTime: now,
+						}, nil)
 
 				return repo
 			},
@@ -56,14 +57,14 @@ func Test_userService_Login(t *testing.T) {
 			password: "hello#world123",
 
 			wantErr: nil,
-			wantUser: *entity.NewUserBuilder().
-				ID(1).
-				Name("moocss").
-				Email("moocss@160.com").
-				Password("$2a$10$5QUjLai8/7BHI4IRqoGh1Ou4Bg82dAo9FPybwcAQl23E.KedwvDKO").
-				Phone("13401234567").
-				CreatedTime(now).
-				Build(),
+			wantUser: entity.User{
+				ID:          1,
+				Name:        "moocss",
+				Email:       "moocss@160.com",
+				Password:    "$2a$10$3FgSVRUpi.9.UferU0SxC.nGw8Y2eh6yjSqGO8nUcF0CfYbKlrZbS",
+				Phone:       "13401234567",
+				CreatedTime: now,
+			},
 		},
 		{
 			name: "用户未找到",
@@ -91,14 +92,14 @@ func Test_userService_Login(t *testing.T) {
 					FindByEmail(gomock.Any(), gomock.Any()).
 					// 返回错误, 模拟返回 ErrUserDataNotFound 错误
 					Return(
-						entity.NewUserBuilder().
-							ID(1).
-							Name("moocss").
-							Email("moocss@160.com").
-							Password("$2a$10$5QUjLai8/7BHI4IRqoGh1Ou4Bg82dAo9FPybwcAQl23E.KedwvDKO").
-							Phone("13401234567").
-							CreatedTime(now).
-							Build(), nil)
+						&entity.User{
+							ID:          1,
+							Name:        "moocss",
+							Email:       "moocss@160.com",
+							Password:    "$2a$10$3FgSVRUpi.9.UferU0SxC.nGw8Y2eh6yjSqGO8nUcF0CfYbKlrZbS",
+							Phone:       "13401234567",
+							CreatedTime: now,
+						}, nil)
 				return repo
 			},
 			ctx:   context.Background(),

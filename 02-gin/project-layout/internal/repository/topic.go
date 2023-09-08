@@ -32,10 +32,10 @@ func NewTopicRepository(dao dao.UserDAO, logger *log.Logger) TopicRepository {
 }
 
 func (tr *topicRepository) Save(ctx context.Context, topicEntity entity.Topic) (err error) {
-	if topicEntity.ID() > 0 {
+	if topicEntity.ID > 0 {
 		err = tr.updateTopic(ctx, topicEntity)
-		for _, commentEntity := range topicEntity.Comments() {
-			if commentEntity.ID() > 0 {
+		for _, commentEntity := range topicEntity.Comments {
+			if commentEntity.ID > 0 {
 				_ = tr.updateComment(ctx, *commentEntity)
 			} else {
 				_ = tr.insertComment(ctx, *commentEntity)
