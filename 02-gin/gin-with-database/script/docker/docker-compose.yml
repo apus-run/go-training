@@ -1,0 +1,33 @@
+version: '3.0'
+
+services:
+  db:
+    image: mysql:8.0.29
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    # 挂载文件
+    volumes:
+      # 把主机的./script/mysql/目录挂载到容器的/docker-entrypoint-initdb.d/目录
+      # docker-entrypoint-initdb.d/目录是mysql容器启动时会自动执行的sql脚本目录
+      # 也就是说，我们可以把初始化数据库的sql脚本放到主机的./script/mysql/目录下
+      # mysql容器启动时会自动执行这个目录下的sql脚本
+      - ./script/mysql/:/docker-entrypoint-initdb.d/
+    ports:
+      # 指定端口映射关系
+      # 把主机的13306端口映射到容器的3306端口
+      - "13306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "16379:6379"
+    environment:
+      # - ALLOW_EMPTY_PASSWORD: yes # 可以不设置密码
+      REDIS_PASSWORD: 123456
+#       volumes:
+#          - ./script/redis/redis.conf:/usr/local/etc/redis/redis.conf
+#       command: redis-server /usr/local/etc/redis/redis.conf
+
+
