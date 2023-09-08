@@ -13,7 +13,7 @@ import (
 )
 
 func Router() http.Handler {
-	log.Printf("load router")
+	log.Printf("load web")
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

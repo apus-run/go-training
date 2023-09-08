@@ -9,7 +9,7 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	// create router
+	// create web
 	handler := Router()
 
 	// run server using httptest

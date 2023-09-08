@@ -1,0 +1,18 @@
+server:
+  addr: "0.0.0.0:8000"
+  timeout: "1s"
+data:
+  database:
+    driver: "mysql"
+    dsn: "root:123456@tcp(localhost:13306)/test_db?charset=utf8mb4&parseTime=True&loc=Local"
+  redis:
+    addr: "localhost:16379"
+    password: "123456"
+    db: 0
+    read_timeout: "0.2s"
+    write_timeout: "0.2s"
+  memory:
+    size: 10485760
+jwt:
+  secret: "moyn8y9abnd7q4zkq2m73yw8tu9j5ixm"
+  expire: 3600

@@ -1,8 +1,9 @@
 package dao
 
 import (
-	"gin-with-database/internal/repo/dao/model"
 	"gorm.io/gorm"
+
+	"gin-with-database/internal/repo/dao/model"
 )
 
 func InitTables(db *gorm.DB) error {

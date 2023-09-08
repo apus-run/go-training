@@ -29,10 +29,10 @@ check:
 # 生成 mock 文件
 .PHONY: mock
 mock:
-	@mockgen -source=./repo/cache/code.go -package=cachemocks -destination=./repo/cache/mocks/code.mock.go
-	@mockgen -package=redismocks -destination=./repo/cache/redismocks/cmd.mock.go github.com/redis/go-redis/v9 Cmdable
-	@mockgen -source=./repo/user.go -package=repomocks -destination=./repo/mocks/user.mock.go
-	@mockgen -source=./repo/dao/user.go -package=daomocks -destination=./repo/dao/mocks/user.mock.go
+	@mockgen -source=./internal/repo/cache/code.go -package=cachemocks -destination=./internal/repo/cache/mocks/code.mock.go
+	@mockgen -package=redismocks -destination=./internal/repo/cache/redismocks/cmd.mock.go github.com/redis/go-redis/v9 Cmdable
+	@mockgen -source=./internal/repo/user.go -package=repomocks -destination=./internal/repo/mocks/user.mock.go
+	@mockgen -source=./internal/repo/dao/user.go -package=daomocks -destination=./internal/repo/dao/mocks/user.mock.go
 
 	@$(MAKE) tidy
 	@echo "go mock finished"

@@ -1,6 +1,8 @@
 package infra
 
 import (
+	"context"
+
 	"github.com/coocood/freecache"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
@@ -85,6 +87,10 @@ func NewRDB() *redis.Client {
 		Password: pwd,
 		DB:       dbname,
 	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		panic(err)
+	}
 
 	return rdb
 }

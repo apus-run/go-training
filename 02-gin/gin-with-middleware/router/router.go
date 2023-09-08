@@ -15,7 +15,7 @@ import (
 )
 
 func Router() http.Handler {
-	log.Printf("load router")
+	log.Printf("load web")
 
 	// Create a slog logger, which:
 	//   - Logs to stdout.

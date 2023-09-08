@@ -1,9 +1,6 @@
-package router
+package web
 
 import (
-	"gin-with-database/internal/router/handler"
-	"gin-with-database/internal/router/middleware/auth"
-	ginslog "gin-with-database/internal/router/middleware/slog"
 	"log"
 	"log/slog"
 	"net/http"
@@ -11,10 +8,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"gin-with-database/internal/web/handler"
+	"gin-with-database/internal/web/middleware/auth"
+	ginslog "gin-with-database/internal/web/middleware/slog"
 )
 
 func Router(uh *handler.UserHandler) http.Handler {
-	log.Printf("load router")
+	log.Printf("load web")
 
 	// Create a slog logger, which:
 	//   - Logs to stdout.

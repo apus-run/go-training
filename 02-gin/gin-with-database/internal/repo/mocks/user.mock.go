@@ -6,10 +6,11 @@ package repomocks
 
 import (
 	context "context"
-	"gin-with-database/internal/domain/entity"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
+
+	"gin-with-database/internal/domain/entity"
 )
 
 // MockUserRepository is a mock of UserRepository interface.

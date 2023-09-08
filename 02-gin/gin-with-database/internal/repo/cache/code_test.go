@@ -2,12 +2,13 @@ package cache
 
 import (
 	"context"
-	"gin-with-database/internal/repo/cache/redismocks"
 	"testing"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"gin-with-database/internal/repo/cache/redismocks"
 )
 
 func TestRedisCodeCache_Set(t *testing.T) {

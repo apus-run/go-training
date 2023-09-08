@@ -6,10 +6,11 @@ package daomocks
 
 import (
 	context "context"
-	"gin-with-database/internal/repo/dao/model"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
+
+	"gin-with-database/internal/repo/dao/model"
 )
 
 // MockUserDAO is a mock of UserDAO interface.

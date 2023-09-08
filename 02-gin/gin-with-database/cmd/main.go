@@ -1,25 +1,28 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
 
-	redisx "github.com/apus-run/sea-kit/cache/redis"
-
+	"github.com/apus-run/sea-kit/cache/memory"
+	"github.com/apus-run/sea-kit/config"
+	"github.com/apus-run/sea-kit/config/file"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
-	"gin-with-database/repo"
-	"gin-with-database/repo/dao"
-	"gin-with-database/router"
-	"gin-with-database/router/handler"
-	"gin-with-database/svc"
+	"gin-with-database/internal/conf"
+	"gin-with-database/internal/repo"
+	"gin-with-database/internal/repo/dao"
+	"gin-with-database/internal/svc"
+	"gin-with-database/internal/web"
+	"gin-with-database/internal/web/handler"
 )
 
-func InitDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("root:123456@tcp(localhost:13306)/test_db?charset=utf8mb4&parseTime=True&loc=Local"))
+func InitDB(conf conf.Conf) *gorm.DB {
+	db, err := gorm.Open(mysql.Open(conf.Data.Database.Dsn))
 	if err != nil {
 		panic(err)
 	}
@@ -30,30 +33,63 @@ func InitDB() *gorm.DB {
 	return db
 }
 
-func InitRedis() redis.Cmdable {
-	cmd := redis.NewClient(&redis.Options{
-		Addr:     "localhost:16379",
-		Password: "123456",
-		DB:       1,
+func InitRedis(conf conf.Conf) redis.Cmdable {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     conf.Data.Redis.Addr,
+		Password: conf.Data.Redis.Password,
+		DB:       conf.Data.Redis.Db,
 	})
-	return cmd
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		panic(err)
+	}
+
+	return rdb
 }
 
 func main() {
+	path := "./config/config.yaml"
+	c := config.New(
+		config.WithSource(
+			// 添加前缀为 WEBSERVER_ 的环境变量，不需要的话也可以设为空字符串
+			// env.NewSource("WEBSERVER_"),
+			file.NewSource(path),
+		),
+	)
 
-	db := InitDB()
-	client := InitRedis()
-	rdb := redisx.NewCache(client)
-	// mdb := memory.NewCache()
+	defer c.Close()
+
+	// 加载配置源：
+	if err := c.Load(); err != nil {
+		log.Fatal(err)
+	}
+	//log.Printf("配置文件: %+v", c)
+	//
+	//dsn, err := c.Value("data.database.dsn").String()
+	//if err != nil {
+	//	log.Printf("没找到配置字段: %v", err)
+	//}
+	//log.Printf("data.database.dsn: %v", dsn)
+
+	var cf conf.Conf
+	if err := c.Scan(&cf); err != nil {
+		panic(err)
+	}
+	log.Printf("配置文件: %+v", cf)
+
+	db := InitDB(cf)
+	// client := InitRedis(cf)
+	// rdb := redisx.NewCache(client)
+	mdb := memory.NewCache()
 
 	userDAO := dao.NewUserDAO(db)
-	userRepository := repo.NewUserRepository(userDAO, rdb)
+	userRepository := repo.NewUserRepository(userDAO, mdb)
 	userService := svc.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
 
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: router.Router(userHandler),
+		Handler: web.Router(userHandler),
 
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
