@@ -4,9 +4,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"gin-with-database/internal/domain/entity"
 	"time"
-
-	"gin-with-database/domain/entity"
 )
 
 // User ... sql.NullXXX 类型是为了方便处理 null 值; 空字符串是导致索引失效的罪魁祸首, 所以我们使用 sql.NullXXX

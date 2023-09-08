@@ -3,12 +3,11 @@ package dao
 import (
 	"context"
 	"errors"
+	"gin-with-database/internal/repo/dao/model"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
-
-	"gin-with-database/repo/dao/model"
 )
 
 var ErrRecordNotFound = errors.New("record not found")

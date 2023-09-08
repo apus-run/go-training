@@ -6,7 +6,7 @@ package repomocks
 
 import (
 	context "context"
-	entity "gin-with-database/domain/entity"
+	"gin-with-database/internal/domain/entity"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

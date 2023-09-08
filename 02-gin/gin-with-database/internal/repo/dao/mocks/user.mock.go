@@ -6,7 +6,7 @@ package daomocks
 
 import (
 	context "context"
-	model "gin-with-database/repo/dao/model"
+	"gin-with-database/internal/repo/dao/model"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

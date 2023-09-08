@@ -1,6 +1,9 @@
 package router
 
 import (
+	"gin-with-database/internal/router/handler"
+	"gin-with-database/internal/router/middleware/auth"
+	ginslog "gin-with-database/internal/router/middleware/slog"
 	"log"
 	"log/slog"
 	"net/http"
@@ -8,10 +11,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"gin-with-database/router/handler"
-	"gin-with-database/router/middleware/auth"
-	ginslog "gin-with-database/router/middleware/slog"
 )
 
 func Router(uh *handler.UserHandler) http.Handler {

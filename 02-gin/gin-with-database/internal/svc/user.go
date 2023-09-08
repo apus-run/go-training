@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
-	"gin-with-database/domain/entity"
-	"gin-with-database/repo"
+	"gin-with-database/internal/domain/entity"
+	"gin-with-database/internal/repo"
 )
 
 var ErrUserDuplicate = repo.ErrUserDuplicate

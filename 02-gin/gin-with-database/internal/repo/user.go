@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-with-database/internal/domain/entity"
+	"gin-with-database/internal/repo/dao"
+	"gin-with-database/internal/repo/dao/model"
 	"github.com/redis/go-redis/v9"
 	"log"
 	"time"
 
 	"github.com/apus-run/sea-kit/cache"
-
-	"gin-with-database/domain/entity"
-	"gin-with-database/repo/dao"
-	"gin-with-database/repo/dao/model"
 )
 
 var ErrUserDuplicate = dao.ErrUserDuplicate

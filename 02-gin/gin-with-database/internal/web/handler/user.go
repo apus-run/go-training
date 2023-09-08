@@ -2,16 +2,15 @@ package handler
 
 import (
 	"errors"
+	"gin-with-database/internal/domain/entity"
+	"gin-with-database/internal/router/middleware/auth"
+	"gin-with-database/internal/svc"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-
-	"gin-with-database/domain/entity"
-	"gin-with-database/router/middleware/auth"
-	"gin-with-database/svc"
 )
 
 type UserHandler struct {
