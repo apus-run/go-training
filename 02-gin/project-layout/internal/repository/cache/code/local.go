@@ -5,17 +5,21 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/coocood/freecache"
 )
 
 type codeMemoryCache struct {
 	local FreecacheClient
+
+	lock sync.Mutex
 }
 
 func NewCodeMemoryCache(cache FreecacheClient) CodeCache {
 	return &codeMemoryCache{
 		local: cache,
+		lock:  sync.Mutex{},
 	}
 }
 
@@ -31,6 +35,9 @@ type FreecacheClient interface {
 }
 
 func (m *codeMemoryCache) Set(ctx context.Context, biz, phone, code string) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	res := m.setCode(biz, phone, code)
 
 	switch res {
@@ -50,6 +57,9 @@ func (m *codeMemoryCache) Set(ctx context.Context, biz, phone, code string) erro
 }
 
 func (m *codeMemoryCache) Verify(ctx context.Context, biz, phone, code string) (bool, error) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	res := m.verifyCode(biz, phone, code)
 
 	switch res {

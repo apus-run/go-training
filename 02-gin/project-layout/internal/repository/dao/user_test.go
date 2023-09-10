@@ -32,25 +32,35 @@ func Test_userDAO_Insert(t *testing.T) {
 			name: "插入成功",
 			sqlmock: func(t *testing.T) *sql.DB {
 				db, mock, err := sqlmock.New()
-				assert.NoError(t, err)
 				mockRes := sqlmock.NewResult(1, 1)
 				mock.ExpectExec("INSERT INTO `user` .*").
 					WillReturnResult(mockRes)
+
+				assert.NoError(t, err)
 				return db
 			},
-			ctx:  context.Background(),
-			user: model.User{},
+			ctx: context.Background(),
+			user: model.User{
+				Email: sql.NullString{
+					String: "moocss@163.com",
+					Valid:  true,
+				},
+			},
 		},
 		{
 			name: "插入失败-邮箱冲突",
 			sqlmock: func(t *testing.T) *sql.DB {
 				db, mock, err := sqlmock.New()
-				assert.NoError(t, err)
 				mock.ExpectExec("INSERT INTO `user` .*").
-					WillReturnError(&mysqlDriver.MySQLError{Number: 1062})
+					WillReturnError(&mysqlDriver.MySQLError{
+						Number: 1062,
+					})
+
+				assert.NoError(t, err)
 				return db
 			},
 			ctx:     context.Background(),
+			user:    model.User{},
 			wantErr: ErrUserDuplicate,
 		},
 		{
@@ -59,11 +69,12 @@ func Test_userDAO_Insert(t *testing.T) {
 				db, mock, err := sqlmock.New()
 				assert.NoError(t, err)
 				mock.ExpectExec("INSERT INTO `user` .*").
-					WillReturnError(errors.New("mock db error"))
+					WillReturnError(errors.New("数据库错误"))
 				return db
 			},
 			ctx:     context.Background(),
-			wantErr: errors.New("mock db error"),
+			user:    model.User{},
+			wantErr: errors.New("数据库错误"),
 		},
 	}
 	for _, tc := range testCases {
@@ -71,10 +82,23 @@ func Test_userDAO_Insert(t *testing.T) {
 			sqlDB := tc.sqlmock(t)
 
 			db, err := gorm.Open(mysql.New(mysql.Config{
-				Conn:                      sqlDB,
+				Conn: sqlDB,
+				// SELECT VERSION;
 				SkipInitializeWithVersion: true,
 			}), &gorm.Config{
-				DisableAutomaticPing:   true,
+				// 你 mock DB 不需要 ping
+				DisableAutomaticPing: true,
+
+				// GORM默认在事务中执行单个的创建、更新、删除操作，以确保数据库数据的完整性
+				// ------------------------
+				// 理论上让 GORM 执行
+				// INSERT XXX
+				// ------------------------
+				// 实际上 GORM
+				// BEGIN;
+				// INSERT
+				// COMMIT;
+				// 测试跳过事务
 				SkipDefaultTransaction: true,
 			})
 

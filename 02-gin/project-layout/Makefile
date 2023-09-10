@@ -33,6 +33,11 @@ mock:
 	@mockgen -package=redismocks -destination=./internal/repository/cache/redismocks/cmd.mock.go github.com/redis/go-redis/v9 Cmdable
 	@mockgen -source=./internal/repository/cache/code/local.go -package=localmocks -destination=./internal/repository/cache/localmocks/local.mock.go
 
+	@mockgen -source=./pkg/jwtx/types.go -package=jwtxmocks -destination=./pkg/jwtx/mocks/jwt.mock.go
+	@mockgen -source=./internal/web/handler/jwt/types.go -package=jwtmocks -destination=./internal/web/handler/jwt/mocks/handler.mock.go
+
+
+
 	@$(MAKE) tidy
 	@echo "go mock finished"
 

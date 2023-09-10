@@ -2,6 +2,7 @@ package jwtx
 
 import (
 	"errors"
+	"github.com/golang-jwt/jwt/v5"
 	"time"
 )
 
@@ -11,16 +12,29 @@ type Option func(*Options) error
 type Options struct {
 	secretKey string
 
-	userID    uint64
+	ssid      string
+	uid       uint64
 	userAgent string
 
-	expireAt time.Time
+	// 集成 jwt.RegisteredClaims 配置
+	jwt.RegisteredClaims
 }
 
 // DefaultOptions .
 func DefaultOptions() *Options {
+	now := time.Now()
+	// 过期时间
+	expiresAt := now.Add(time.Hour * 24)
 	return &Options{
-		expireAt: time.Now(),
+		secretKey: SecretKey,
+		RegisteredClaims: jwt.RegisteredClaims{
+			// 令牌过期时间
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			// 令牌的发行时间
+			IssuedAt: jwt.NewNumericDate(now),
+			// 令牌生效时间
+			NotBefore: jwt.NewNumericDate(now),
+		},
 	}
 }
 
@@ -46,24 +60,24 @@ func WithSecretKey(secretKey string) Option {
 	}
 }
 
-// WithUserId .
-func WithUserId(userId uint64) Option {
+// WithUid .
+func WithUid(uid uint64) Option {
 	return func(o *Options) error {
-		if userId == 0 {
-			return errors.New("UserID can not be empty")
+		if uid == 0 {
+			return errors.New("UID can not be empty")
 		}
-		o.userID = userId
+		o.uid = uid
 		return nil
 	}
 }
 
-// WithExpireAt .
-func WithExpireAt(expireAt time.Time) Option {
+// WithSsid .
+func WithSsid(ssid string) Option {
 	return func(o *Options) error {
-		if expireAt.IsZero() {
-			return errors.New("expireAt can not be empty")
+		if len(ssid) == 0 {
+			return errors.New("SSID can not be empty")
 		}
-		o.expireAt = expireAt
+		o.ssid = ssid
 		return nil
 	}
 }
@@ -74,6 +88,14 @@ func WithUserAgent(ua string) Option {
 			return errors.New("UserAgent can not be empty")
 		}
 		o.userAgent = ua
+		return nil
+	}
+}
+
+// WithJwtRegisteredClaims  自行配置RegisteredClaims
+func WithJwtRegisteredClaims(f func(options *Options)) Option {
+	return func(config *Options) error {
+		f(config)
 		return nil
 	}
 }

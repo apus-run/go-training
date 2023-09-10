@@ -6,10 +6,10 @@ import (
 	"time"
 
 	regexp "github.com/dlclark/regexp2"
-
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/service"
 	"project-layout/internal/web/dto"
+	ojwt "project-layout/internal/web/handler/jwt"
 	"project-layout/pkg/ginx"
 	"project-layout/pkg/jwtx"
 	"project-layout/pkg/log"
@@ -23,14 +23,24 @@ type UserHandler struct {
 	svc     service.UserService
 	codeSvc service.CodeService
 
+	// 扩展 Handler
+	ojwt.Handler
+
 	log *log.Logger
 }
 
-func NewUserHandler(svc service.UserService, codeSvc service.CodeService, logger *log.Logger) *UserHandler {
+func NewUserHandler(
+	svc service.UserService,
+	codeSvc service.CodeService,
+	jwthdl ojwt.Handler,
+	logger *log.Logger) *UserHandler {
 	return &UserHandler{
 		svc:     svc,
 		codeSvc: codeSvc,
-		log:     logger,
+
+		Handler: jwthdl,
+
+		log: logger,
 	}
 }
 
@@ -46,24 +56,11 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 		return
 	}
 
-	// 测试使用1分钟
-	// expireAt := time.Now().Add(time.Minute)
-	// 正常设置为30分钟，要将过期时间设置更长一些
-	expireAt := time.Now().Add(time.Minute * 30)
-	token, err := jwtx.GenerateToken(
-		jwtx.WithUserAgent(ctx.Request.UserAgent()),
-		jwtx.WithSecretKey(jwtx.SecretKey),
-		jwtx.WithUserId(user.ID),
-		jwtx.WithExpireAt(expireAt),
-	)
-
+	err = h.SetLoginToken(ctx, user.ID)
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 		return
 	}
-
-	// 将token放入响应头中
-	ctx.Header("x-jwt-token", token)
 
 	ctx.JSONOK("登录成功", nil)
 }
@@ -71,9 +68,28 @@ func (h *UserHandler) Login(ctx *ginx.Context) {
 func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
 	var req dto.SMSLoginReq
 	if err := ctx.Bind(&req); err != nil {
-		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
+		ctx.JSONE(http.StatusBadRequest, "输入的参数格式不正确", nil)
 		return
 	}
+
+	// 你也可以用正则表达式校验是不是合法的手机号
+	if len(req.Phone) == 0 {
+		ctx.JSONE(http.StatusBadRequest, "请输入手机号码", nil)
+		return
+	}
+
+	isPhone, err := regexp.MustCompile(`^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$`, regexp.None).
+		MatchString(req.Phone)
+	if !isPhone || err != nil {
+		ctx.JSONE(http.StatusOK, "手机号不正确", nil)
+		return
+	}
+
+	if len(req.Code) == 0 {
+		ctx.JSONE(http.StatusBadRequest, "请输入手机验证码", nil)
+		return
+	}
+
 	ok, err := h.codeSvc.Verify(ctx, bizLoginType, req.Phone, req.Code)
 	if err != nil {
 		ctx.JSONE(5, "系统异常", nil)
@@ -91,29 +107,8 @@ func (h *UserHandler) LoginSMS(ctx *ginx.Context) {
 		ctx.JSONE(4, "系统错误", nil)
 		return
 	}
-	if err == service.ErrInvalidUserOrPassword {
-		ctx.JSONE(http.StatusOK, "账号或者密码不正确，请重试", nil)
-		return
-	}
 
-	// 测试使用1分钟
-	// expireAt := time.Now().Add(time.Minute)
-	// 正常设置为30分钟，要将过期时间设置更长一些
-	expireAt := time.Now().Add(time.Minute * 30)
-	token, err := jwtx.GenerateToken(
-		jwtx.WithUserAgent(ctx.GetHeader("User-Agent")),
-		jwtx.WithSecretKey(jwtx.SecretKey),
-		jwtx.WithUserId(user.ID),
-		jwtx.WithExpireAt(expireAt),
-	)
-
-	if err != nil {
-		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
-		return
-	}
-	// 将token放入响应头中
-	ctx.Header("x-jwt-token", token)
-
+	err = h.SetLoginToken(ctx, user.ID)
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, err.Error(), nil)
 		return
@@ -223,7 +218,7 @@ func (h *UserHandler) Profile(ctx *ginx.Context) {
 
 	// h.log.Infof("claims: %v", cs)
 
-	user, err := h.svc.Profile(ctx, cs.UserID)
+	user, err := h.svc.Profile(ctx, cs.Uid)
 
 	if err != nil {
 		ctx.JSONE(http.StatusBadRequest, "用户信息没找到", nil)
@@ -288,7 +283,7 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 	cs := ctx.MustGet("claims").(*jwtx.CustomClaims)
 
 	err = h.svc.UpdateProfile(ctx, entity.User{
-		ID:       cs.UserID,
+		ID:       cs.Uid,
 		Gender:   req.Gender,
 		NickName: req.NickName,
 		RealName: req.RealName,
