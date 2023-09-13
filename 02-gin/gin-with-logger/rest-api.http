@@ -25,11 +25,5 @@ Content-Type: application/json
 
 ### 查看用户详情
 GET http://localhost:8080/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTMwMTk1NzAsIlVzZXJJRCI6MSwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikifQ.D96A6t0lB9T6zqe3-skYOs663iO3S4RF5V-Sw04osw8
-
-
-
-### 根据用户ID, 查询用户
-GET http://localhost:8080/user/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTE4ODk2ODksIlVzZXJJRCI6MSwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikifQ.W2pAx3lvdFMsw29OspgTJsLQzMQhkFUgSZC3kMHXJtY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTQ0MDA5MDksIlVzZXJJRCI6MSwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikifQ.vpmpixZpxOwnQHOMKOQM7MArREU9A0Od_uAmJF_j9Hg
 

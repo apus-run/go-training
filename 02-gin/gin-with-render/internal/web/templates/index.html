@@ -1,0 +1,29 @@
+{{template "layout" .}}
+
+{{define "title" -}}
+My Blog | {{index . "name"}}
+{{- end}}
+
+{{define "css" -}}
+<link rel="stylesheet" href="/public/assets/css/index.min.css">
+{{- end}}
+
+<!-- header -->
+
+{{define "body"}}
+<main class="page-home">
+  <h1>{{index . "msg"}}</h1>
+  <h2>This is the home page.</h2>
+
+  <div hx-get="/ping">
+    Ajax Get To Messages
+  </div>
+</main>
+{{end}}
+
+<!-- footer -->
+
+{{define "footer"}}
+<script type="text/javascript" src="/public/assets/js/libs/htmx.min.js"></script>
+{{end}}
+

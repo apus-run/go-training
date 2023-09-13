@@ -1,4 +1,4 @@
-module gin-with-logger
+module gin-with-seesion
 
 go 1.19
 

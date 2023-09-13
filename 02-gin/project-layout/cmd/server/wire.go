@@ -12,6 +12,7 @@ import (
 	"project-layout/internal/service"
 	"project-layout/internal/web"
 	"project-layout/internal/web/handler"
+	"project-layout/internal/web/handler/jwt"
 	"project-layout/pkg/ginx"
 	"project-layout/pkg/log"
 )
@@ -22,7 +23,7 @@ func wireApp(*log.Logger) (*ginx.HttpServer, func(), error) {
 		// 数据库 和 缓存
 		infra.NewDB,
 		infra.NewRDB,
-		infra.NewLocalDB(),
+		// infra.NewLocalDB,
 		infra.NewData,
 
 		// DAO 部分
@@ -30,8 +31,8 @@ func wireApp(*log.Logger) (*ginx.HttpServer, func(), error) {
 
 		// Cache 部分
 		user.NewUserRedisCache,
-		// code.NewCodeRedisCache,
-		code.NewCodeMemoryCache,
+		code.NewCodeRedisCache,
+		// code.NewCodeMemoryCache,
 
 		// Repository 部分
 		repository.NewUserRepository,
@@ -43,8 +44,10 @@ func wireApp(*log.Logger) (*ginx.HttpServer, func(), error) {
 		service.NewCodeService,
 
 		// Handler 部分
+		jwt.NewJwtHandler,
 		handler.NewUserHandler,
 		web.NewRouter,
+		InitMiddlewares,
 		InitWebServer,
 	))
 }

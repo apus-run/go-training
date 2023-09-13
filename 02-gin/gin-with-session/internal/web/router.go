@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"gin-with-logger/internal/web/handler"
-	"gin-with-logger/internal/web/middleware/auth"
+	"gin-with-seesion/internal/web/handler"
+	"gin-with-seesion/internal/web/middleware/auth"
 )
 
 func Router(uh *handler.UserHandler) http.Handler {
@@ -33,6 +33,6 @@ func Router(uh *handler.UserHandler) http.Handler {
 	engine.POST("/login", uh.Login)
 	engine.POST("/signup", uh.Signup)
 	engine.GET("/profile", uh.Profile)
-	
+
 	return engine
 }

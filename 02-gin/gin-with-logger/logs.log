@@ -1,0 +1,9 @@
+{"time":"2023-09-11T10:44:11.545919+08:00","level":"INFO","source":"/Users/moocss/gowork/pkg/mod/github.com/apus-run/sea-kit/slogx@v0.0.0-20230908142142-a6b719f02c24/log.go:69","msg":"the log module has been initialized successfully.","options":{}}
+{"time":"2023-09-11T10:44:11.550751+08:00","level":"INFO","source":":0","msg":"load web"}
+{"time":"2023-09-11T10:44:11.550831+08:00","level":"INFO","source":"/Users/moocss/work/GoProjects/go-training/02-gin/gin-with-logger/cmd/server/main.go:34","msg":"server listen at","!BADKEY":":8080"}
+{"time":"2023-09-11T10:44:11.550853+08:00","level":"INFO","source":":0","msg":"server listen at :8080"}
+{"time":"2023-09-11T10:45:43.859886+08:00","level":"INFO","source":"/Users/moocss/gowork/pkg/mod/github.com/apus-run/sea-kit/slogx@v0.0.0-20230908142142-a6b719f02c24/log.go:69","msg":"the log module has been initialized successfully.","options":{}}
+{"time":"2023-09-11T10:45:43.864337+08:00","level":"INFO","source":":0","msg":"load web"}
+{"time":"2023-09-11T10:45:43.86442+08:00","level":"INFO","source":"/Users/moocss/work/GoProjects/go-training/02-gin/gin-with-logger/cmd/server/main.go:34","msg":"server listen at","!BADKEY":":8080"}
+{"time":"2023-09-11T10:48:55.419261+08:00","level":"INFO","source":"/Users/moocss/gowork/pkg/mod/github.com/apus-run/sea-kit/slogx@v0.0.0-20230908142142-a6b719f02c24/log.go:69","msg":"the log module has been initialized successfully.","options":{}}
+{"time":"2023-09-11T11:02:02.199505+08:00","level":"INFO","source":"/Users/moocss/gowork/pkg/mod/github.com/apus-run/sea-kit/slogx@v0.0.0-20230908142142-a6b719f02c24/log.go:69","msg":"the log module has been initialized successfully.","options":{}}

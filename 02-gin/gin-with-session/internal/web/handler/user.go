@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 
-	"gin-with-logger/internal/domain"
-	"gin-with-logger/internal/web/middleware/auth"
+	"gin-with-seesion/internal/domain"
+	"gin-with-seesion/internal/web/middleware/auth"
 )
 
 type UserHandler struct {

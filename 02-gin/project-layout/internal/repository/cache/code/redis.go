@@ -7,8 +7,6 @@ import (
 	_ "embed"
 
 	"github.com/redis/go-redis/v9"
-
-	"project-layout/internal/infra"
 )
 
 var (
@@ -22,9 +20,9 @@ type codeRedisCache struct {
 	client redis.Cmdable
 }
 
-func NewCodeRedisCache(data *infra.Data) CodeCache {
+func NewCodeRedisCache(client redis.Cmdable) CodeCache {
 	return &codeRedisCache{
-		client: data.RDB,
+		client: client,
 	}
 }
 

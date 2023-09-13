@@ -2,13 +2,9 @@ package web
 
 import (
 	"fmt"
-
 	"github.com/gin-gonic/gin"
-
 	"project-layout/internal/web/handler"
 	"project-layout/pkg/ginx"
-	"project-layout/pkg/ginx/middleware/auth"
-	"project-layout/pkg/ginx/middleware/cors"
 )
 
 type Router struct {
@@ -23,26 +19,6 @@ func NewRouter(userHandler *handler.UserHandler) ginx.Router {
 }
 
 func (r *Router) Load(engine *gin.Engine) {
-	// 注册中间件
-	// -------------------------------------------------------
-	engine.Use(
-		cors.NewCORS(
-			// 允许前端发送
-			cors.WithAllowHeaders([]string{"Content-Type", "Authorization"}),
-			// 允许前端获取
-			cors.WithExposeHeaders([]string{"x-jwt-token"}),
-			cors.WithMaxAge(12*60*60),
-		).Build(),
-	)
-	engine.Use(
-		auth.NewBuilder().
-			IgnorePaths("user/login").
-			IgnorePaths("user/login_sms/code/send").
-			IgnorePaths("user/login_sms").
-			IgnorePaths("user/register").
-			Build(),
-	)
-
 	// 公共路由
 	// -------------------------------------------------------
 	// 404

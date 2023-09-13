@@ -7,8 +7,6 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
-
-	"project-layout/internal/infra"
 )
 
 func TestRedisCodeCache_Set_e2e(t *testing.T) {
@@ -21,14 +19,9 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data := &infra.Data{
-		DB:  nil,
-		RDB: rdb,
-	}
-
 	// 因为我们这里不再需要使用 mock 的 Redis 客户端
 	// 所以我们直接创建出来
-	c := NewCodeRedisCache(data).(*codeRedisCache)
+	c := NewCodeRedisCache(rdb)
 
 	testCases := []struct {
 		name string
@@ -55,7 +48,7 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 			// 在设置成功的情况下，我们预期在 Redis 里面会有这个数据
 			after: func(t *testing.T) {
 				ctx := context.Background()
-				key := c.key("login", "15212345678")
+				key := "phone_code:login:15212345678"
 				val, err := rdb.Get(ctx, key).Result()
 				// 断言必然取到了数据
 				assert.NoError(t, err)
@@ -80,7 +73,7 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 			before: func(t *testing.T) {
 				// 先准备一个数据，假装我们已经发送了一个验证码
 				ctx := context.Background()
-				key := c.key("login", "15212345679")
+				key := "phone_code:login:15212345678"
 				// 简单验证这里咩有出错
 				err := rdb.Set(ctx, key, "123456", time.Minute*9+time.Second*30).Err()
 				assert.NoError(t, err)
@@ -88,7 +81,7 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 			// 发送太频繁的时候，我们预期还是原本的 123456
 			after: func(t *testing.T) {
 				ctx := context.Background()
-				key := c.key("login", "15212345679")
+				key := "phone_code:login:15212345679"
 				val, err := rdb.Get(ctx, key).Result()
 				// 断言必然取到了数据
 				assert.NoError(t, err)
@@ -109,7 +102,7 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 			before: func(t *testing.T) {
 				// 假装有人放了一个验证码，但是没有设置过期时间
 				ctx := context.Background()
-				key := c.key("login", "15212345670")
+				key := "phone_code:login:15212345670"
 				// 传入 0 就是没有过期时间
 				err := rdb.Set(ctx, key, "123456", 0).Err()
 				assert.NoError(t, err)
@@ -120,7 +113,7 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 			// 也就是还保持那个没有设置过期时间的错误数据
 			after: func(t *testing.T) {
 				ctx := context.Background()
-				key := c.key("login", "15212345670")
+				key := "phone_code:login:15212345670"
 				val, err := rdb.Get(ctx, key).Result()
 				// 断言必然取到了数据
 				assert.NoError(t, err)

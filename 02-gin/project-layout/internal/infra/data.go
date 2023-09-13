@@ -2,6 +2,7 @@ package infra
 
 import (
 	"context"
+	"project-layout/internal/repository/cache/code"
 
 	"github.com/coocood/freecache"
 	"github.com/redis/go-redis/v9"
@@ -78,7 +79,7 @@ func NewDB() *gorm.DB {
 	return db
 }
 
-func NewRDB() *redis.Client {
+func NewRDB() redis.Cmdable {
 	addr := conf.Get("config", "data.redis.addr").(string)
 	pwd := conf.Get("config", "data.redis.password").(string)
 	dbname := conf.Get("config", "data.redis.db").(int)
@@ -95,7 +96,7 @@ func NewRDB() *redis.Client {
 	return rdb
 }
 
-func NewLocalDB() *freecache.Cache {
+func NewLocalDB() code.FreecacheClient {
 	size := conf.Get("config", "data.memory.size").(int)
 	ldb := freecache.NewCache(size)
 	return ldb

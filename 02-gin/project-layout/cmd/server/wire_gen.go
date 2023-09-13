@@ -15,6 +15,7 @@ import (
 	"project-layout/internal/service"
 	"project-layout/internal/web"
 	"project-layout/internal/web/handler"
+	"project-layout/internal/web/handler/jwt"
 	"project-layout/pkg/ginx"
 	"project-layout/pkg/log"
 )
@@ -23,21 +24,22 @@ import (
 
 // wireApp init web application.
 func wireApp(logger *log.Logger) (*ginx.HttpServer, func(), error) {
+	cmdable := infra.NewRDB()
+	v := InitMiddlewares(cmdable)
 	db := infra.NewDB()
-	client := infra.NewRDB()
-	cache := infra.NewLocalDB()
-	data, cleanup := infra.NewData(db, client, logger)
+	data, cleanup := infra.NewData(db, cmdable, logger)
 	userDAO := dao.NewUserDAO(data)
-	userCache := user.NewUserRedisCache(data)
+	userCache := user.NewUserRedisCache(cmdable)
 	userRepository := repository.NewUserRepository(userDAO, userCache, logger)
 	userService := service.NewUserService(userRepository, logger)
 	smsService := InitSmsService()
-	codeCache := code.NewCodeMemoryCache(cache)
+	codeCache := code.NewCodeRedisCache(cmdable)
 	codeRepository := repository.NewCodeRepository(codeCache)
 	codeService := service.NewCodeService(smsService, codeRepository)
-	userHandler := handler.NewUserHandler(userService, codeService, logger)
+	jwtHandler := jwt.NewJwtHandler()
+	userHandler := handler.NewUserHandler(userService, codeService, jwtHandler, logger)
 	router := web.NewRouter(userHandler)
-	httpServer := InitWebServer(router)
+	httpServer := InitWebServer(v, router)
 	return httpServer, func() {
 		cleanup()
 	}, nil

@@ -57,7 +57,7 @@ func (tr *topicRepository) insertTopic(ctx context.Context, topicEntity entity.T
 func (tr *topicRepository) updateTopic(ctx context.Context, topicEntity entity.Topic) (err error) {
 	/*
 		// Map the data from Entity to DO
-		topicModel := new(model.Topic)
+		topicModel := new(domain.Topic)
 		err := topicModel.FromEntity(topicEntity)
 		if err != nil {
 			return err

@@ -6,14 +6,17 @@ import (
 	"testing"
 
 	"github.com/gavv/httpexpect"
+
+	"gin-with-render/internal/web/handler"
 )
 
 func TestRouter(t *testing.T) {
+	userHandler := handler.NewUserHandler()
 	// create web
-	handler := Router()
+	router := Router(userHandler)
 
 	// run server using httptest
-	server := httptest.NewServer(handler)
+	server := httptest.NewServer(router)
 	defer server.Close()
 
 	// create httpexpect instance

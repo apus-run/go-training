@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"gin-with-logger/internal/web"
-	"gin-with-logger/internal/web/handler"
+	"gin-with-seesion/internal/web"
+	"gin-with-seesion/internal/web/handler"
 )
 
 func main() {

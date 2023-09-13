@@ -86,10 +86,11 @@ func main() {
 	userRepository := repo.NewUserRepository(userDAO, mdb)
 	userService := svc.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
+	router := web.Router(userHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: web.Router(userHandler),
+		Handler: router,
 
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

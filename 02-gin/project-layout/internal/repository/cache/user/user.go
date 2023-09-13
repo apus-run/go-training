@@ -10,7 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"project-layout/internal/domain/entity"
-	"project-layout/internal/infra"
 )
 
 var ErrKeyNotFound = errors.New("key not found")
@@ -41,9 +40,9 @@ type userRedisCache struct {
 	expire time.Duration
 }
 
-func NewUserRedisCache(data *infra.Data) UserCache {
+func NewUserRedisCache(client redis.Cmdable) UserCache {
 	return &userRedisCache{
-		client: data.RDB,
+		client: client,
 		expire: time.Minute * 15,
 	}
 }

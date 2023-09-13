@@ -3,10 +3,11 @@ POST http://localhost:9000/v1/user/register
 Content-Type: application/json
 
 {
-    "name": "test",
-    "password": "111111",
-    "email": "moocss@100.com",
-    "phone": "13800138003"
+  "name":"test6",
+  "password":"hello#123456",
+  "confirm_password":"hello#123456",
+  "email":"moocss@180.com",
+  "phone":"13801234569"
 }
 
 ### 用户登录
@@ -14,13 +15,23 @@ POST http://localhost:9000/v1/user/login
 Content-Type: application/json
 
 {
-    "email": "moocss@100.com",
-    "password": "111111"
+    "email": "moocss@180.com",
+    "password": "hello#123456"
 }
 
 ### 用户信息
 GET http://localhost:9000/v1/user/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsIlVzZXJBZ2VudCI6IkFwYWNoZS1IdHRwQ2xpZW50LzQuNS4xMyAoSmF2YS8xNy4wLjYpIiwiZXhwIjoxNjkxODE3MTMwLCJuYmYiOjE2OTE4MTcwMTAsImlhdCI6MTY5MTgxNzAxMH0.5dQE--xgMuxXYnhXduZ8w7wr3EwS5teCpgUItzPCfiI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVaWQiOjE3LCJTc2lkIjoiIiwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikiLCJleHAiOjE2OTQ1ODQ2ODAsIm5iZiI6MTY5NDU4Mjg4MCwiaWF0IjoxNjk0NTgyODgwfQ.UqFlAiEBNh_haOOFbCTBbRsT-jv6MwSG-tUm2g1y_WY
 
+### 更新用户信息
+POST http://localhost:9000/v1/user/update/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVaWQiOjE3LCJTc2lkIjoiIiwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikiLCJleHAiOjE2OTQ1ODQ2ODAsIm5iZiI6MTY5NDU4Mjg4MCwiaWF0IjoxNjk0NTgyODgwfQ.UqFlAiEBNh_haOOFbCTBbRsT-jv6MwSG-tUm2g1y_WY
 
-### 用户列表
+{
+  "gender": 0,
+  "nick_name": "李民",
+  "real_name": "李民",
+  "birthday": "1996-01-08",
+  "profile": "我是程序员29"
+}

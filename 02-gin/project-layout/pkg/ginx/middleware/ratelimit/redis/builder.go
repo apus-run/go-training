@@ -5,17 +5,17 @@ import (
 	"log"
 	"net/http"
 
-	retelimit "github.com/apus-run/sea-kit/retelimit_redis"
 	"github.com/gin-gonic/gin"
+	ratelimit "project-layout/pkg/ratelimit_redis"
 )
 
 type Builder struct {
 	prefix string
 
-	limiter retelimit.Limiter
+	limiter ratelimit.Limiter
 }
 
-func NewBuilder(limiter retelimit.Limiter) *Builder {
+func NewBuilder(limiter ratelimit.Limiter) *Builder {
 	return &Builder{
 		prefix:  "ip-limiter",
 		limiter: limiter,

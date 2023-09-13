@@ -1,12 +1,12 @@
-module gin-with-jwt
+module gin-with-logger
 
 go 1.19
 
 require (
+	github.com/apus-run/sea-kit/slogx v0.0.0-20230908142142-a6b719f02c24
 	github.com/gavv/httpexpect v1.1.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.0.0
-	github.com/google/uuid v1.3.1
 )
 
 require (
@@ -34,6 +34,7 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.27.10 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect

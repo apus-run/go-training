@@ -1,5 +1,27 @@
-<html>
-	<h1>
-		{{ .title }}
-	</h1>
-</html>
+{{template "layout" .}}
+
+{{define "title" -}}
+My Blog | {{index . "name"}}
+{{- end}}
+
+{{define "css" -}}
+<link rel="stylesheet" href="/public/assets/css/page.min.css">
+{{- end}}
+
+<!-- header -->
+
+{{define "body"}}
+<main class="page-bar">
+	<h1>{{index . "msg"}}</h1>
+	<h2>This is the bar page.</h2>
+	<div hx-get="/ping">
+		Ajax Get To Messages
+	</div>
+</main>
+{{end}}
+
+<!-- footer -->
+
+{{define "footer"}}
+<script type="text/javascript" src="/public/assets/js/libs/htmx.min.js"></script>
+{{end}}

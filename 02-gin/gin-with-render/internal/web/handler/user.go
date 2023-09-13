@@ -2,24 +2,29 @@ package handler
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 
-	"gin-with-logger/internal/domain"
-	"gin-with-logger/internal/web/middleware/auth"
+	"gin-with-render/internal/domain"
+	"gin-with-render/internal/web/middleware/auth"
 )
 
 type UserHandler struct {
+	logger *slog.Logger
 }
 
-func NewUserHandler() *UserHandler {
-	return &UserHandler{}
+func NewUserHandler(logger *slog.Logger) *UserHandler {
+	return &UserHandler{
+		logger: logger,
+	}
 }
 
 func (uh *UserHandler) Login(c *gin.Context) {
+
 	type UserRequest struct {
 		Email    string
 		Password string

@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"project-layout/internal/infra"
 	"project-layout/internal/repository/cache/redismocks"
 )
 
@@ -80,12 +79,7 @@ func Test_codeRedisCache_Set(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			data := &infra.Data{
-				DB:  nil,
-				RDB: tc.mock(ctrl),
-			}
-
-			c := NewCodeRedisCache(data)
+			c := NewCodeRedisCache(tc.mock(ctrl))
 			err := c.Set(tc.ctx, tc.biz, tc.phone, tc.code)
 			assert.Equal(t, tc.wantErr, err)
 		})

@@ -39,7 +39,7 @@ type Router interface {
 
 // Run server的启动入口
 // 加载路由, 启动服务
-func (s *HttpServer) Run(rs ...Router) {
+func (s *HttpServer) Run(mdls []gin.HandlerFunc, rs ...Router) {
 	wg := sync.WaitGroup{}
 
 	// 设置gin启动模式，必须在创建gin实例之前
@@ -54,6 +54,9 @@ func (s *HttpServer) Run(rs ...Router) {
 
 	// 创建gin实例
 	g := gin.Default()
+
+	// 注册中间件
+	g.Use(mdls...)
 
 	// 加载路由
 	s.registerRoutes(g, rs...)

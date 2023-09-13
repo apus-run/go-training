@@ -3,7 +3,7 @@ package repo
 import (
 	"context"
 
-	"gin-with-logger/internal/domain"
+	"gin-with-seesion/internal/domain"
 )
 
 type UserRepo interface {
@@ -27,4 +27,3 @@ func (u userRepo) FindByID(ctx context.Context, id uint64) (*domain.User, error)
 	//TODO implement me
 	panic("implement me")
 }
-
