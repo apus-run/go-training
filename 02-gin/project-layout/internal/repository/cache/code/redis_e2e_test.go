@@ -21,7 +21,7 @@ func TestRedisCodeCache_Set_e2e(t *testing.T) {
 
 	// 因为我们这里不再需要使用 mock 的 Redis 客户端
 	// 所以我们直接创建出来
-	c := NewCodeRedisCache(rdb)
+	c := NewRedisCodeCache(rdb)
 
 	testCases := []struct {
 		name string

@@ -1,10 +1,16 @@
 package entity
 
+import "time"
+
 type Comment struct {
 	ID      uint64
 	TopicID uint64
 	UserID  uint64
 	Content string
+
+	CreatedTime time.Time  // 创建时间
+	UpdatedTime time.Time  // 更新时间
+	DeletedTime *time.Time // 删除时间
 
 	ChangeTracker
 }

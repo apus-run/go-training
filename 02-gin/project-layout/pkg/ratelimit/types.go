@@ -1,4 +1,4 @@
-package ratelimit_redis
+package ratelimit
 
 import (
 	"golang.org/x/net/context"

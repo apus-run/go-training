@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"geektime-basic-go/webook/internal/service/sms"
+	"project-layout/internal/service/sms"
 )
 
 type respTimeService struct {
@@ -17,7 +17,7 @@ type respTimeService struct {
 	maxThreshold int64
 
 	// 当前记录次数
-	curcnt int64
+	curCnt int64
 	// 当前窗口响应时长
 	curWindowsRespTime int64
 
@@ -40,16 +40,16 @@ func (r *respTimeService) Send(ctx context.Context, tplId string, args []string,
 	now := time.Now()
 	err := r.svcs.Send(ctx, tplId, args, numbers...)
 	curWindowsRespTime := atomic.LoadInt64(&r.curWindowsRespTime) + time.Since(now).Milliseconds()
-	curcnt := atomic.LoadInt64(&r.curcnt)
-	if curcnt+1 >= r.maxCnt {
+	curCnt := atomic.LoadInt64(&r.curCnt)
+	if curCnt+1 >= r.maxCnt {
 		atomic.SwapInt64(&r.lastWindowsAvgRespTime, curWindowsRespTime/r.maxCnt)
-		atomic.SwapInt64(&r.curcnt, 0)
+		atomic.SwapInt64(&r.curCnt, 0)
 		atomic.SwapInt64(&r.curWindowsRespTime, 0)
 		return err
 	}
 
-	atomic.AddInt64(&r.curcnt, 1)
+	atomic.AddInt64(&r.curCnt, 1)
 	atomic.SwapInt64(&r.curWindowsRespTime, curWindowsRespTime)
-	atomic.SwapInt64(&r.curWindowsAvgRespTime, curWindowsRespTime/(curcnt+1))
+	atomic.SwapInt64(&r.curWindowsAvgRespTime, curWindowsRespTime/(curCnt+1))
 	return err
 }

@@ -11,7 +11,7 @@ import (
 	"project-layout/internal/repository/cache/redismocks"
 )
 
-func Test_codeRedisCache_Set(t *testing.T) {
+func Test_redisCodeCache_Set(t *testing.T) {
 	testCases := []struct {
 		name string
 
@@ -79,7 +79,7 @@ func Test_codeRedisCache_Set(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			c := NewCodeRedisCache(tc.mock(ctrl))
+			c := NewRedisCodeCache(tc.mock(ctrl))
 			err := c.Set(tc.ctx, tc.biz, tc.phone, tc.code)
 			assert.Equal(t, tc.wantErr, err)
 		})

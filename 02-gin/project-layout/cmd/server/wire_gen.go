@@ -13,7 +13,7 @@ import (
 	"project-layout/internal/repository/cache/user"
 	"project-layout/internal/repository/dao"
 	"project-layout/internal/service"
-	"project-layout/internal/web"
+	"project-layout/internal/service/oauth2/wechat"
 	"project-layout/internal/web/handler"
 	"project-layout/internal/web/handler/jwt"
 	"project-layout/pkg/ginx"
@@ -22,8 +22,8 @@ import (
 
 // Injectors from wire.go:
 
-// wireApp init web application.
-func wireApp(logger *log.Logger) (*ginx.HttpServer, func(), error) {
+// runApp init web application.
+func runApp(logger *log.Logger) (*ginx.HttpServer, func(), error) {
 	cmdable := infra.NewRDB()
 	v := InitMiddlewares(cmdable)
 	db := infra.NewDB()
@@ -33,13 +33,14 @@ func wireApp(logger *log.Logger) (*ginx.HttpServer, func(), error) {
 	userRepository := repository.NewUserRepository(userDAO, userCache, logger)
 	userService := service.NewUserService(userRepository, logger)
 	smsService := InitSmsService()
-	codeCache := code.NewCodeRedisCache(cmdable)
+	codeCache := code.NewRedisCodeCache(cmdable)
 	codeRepository := repository.NewCodeRepository(codeCache)
 	codeService := service.NewCodeService(smsService, codeRepository)
 	jwtHandler := jwt.NewJwtHandler()
 	userHandler := handler.NewUserHandler(userService, codeService, jwtHandler, logger)
-	router := web.NewRouter(userHandler)
-	httpServer := InitWebServer(v, router)
+	wechatService := wechat.NewService()
+	oAuth2WechatHandler := handler.NewOAuth2WechatHandler(wechatService, userService, jwtHandler)
+	httpServer := InitWebServer(v, userHandler, oAuth2WechatHandler)
 	return httpServer, func() {
 		cleanup()
 	}, nil

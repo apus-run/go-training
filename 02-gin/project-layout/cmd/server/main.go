@@ -34,7 +34,7 @@ func main() {
 
 	defer logger.Sync()
 
-	s, cleanup, err := wireApp(logger)
+	s, cleanup, err := runApp(logger)
 	if err != nil {
 		panic(err)
 	}

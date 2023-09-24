@@ -21,17 +21,18 @@ Content-Type: application/json
 
 ### 用户信息
 GET http://localhost:9000/v1/user/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVaWQiOjE3LCJTc2lkIjoiIiwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikiLCJleHAiOjE2OTQ1ODQ2ODAsIm5iZiI6MTY5NDU4Mjg4MCwiaWF0IjoxNjk0NTgyODgwfQ.UqFlAiEBNh_haOOFbCTBbRsT-jv6MwSG-tUm2g1y_WY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVaWQiOjE3LCJTc2lkIjoiIiwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikiLCJleHAiOjE2OTUxOTg2NjksIm5iZiI6MTY5NTE5Njg2OSwiaWF0IjoxNjk1MTk2ODY5fQ.wVkEbuC7wC_erdZ5EkHIxJa9go7QPZODoQRQ63tWTDA
+
 
 ### 更新用户信息
 POST http://localhost:9000/v1/user/update/profile
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVaWQiOjE3LCJTc2lkIjoiIiwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikiLCJleHAiOjE2OTQ1ODQ2ODAsIm5iZiI6MTY5NDU4Mjg4MCwiaWF0IjoxNjk0NTgyODgwfQ.UqFlAiEBNh_haOOFbCTBbRsT-jv6MwSG-tUm2g1y_WY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVaWQiOjE3LCJTc2lkIjoiIiwiVXNlckFnZW50IjoiQXBhY2hlLUh0dHBDbGllbnQvNC41LjEzIChKYXZhLzE3LjAuNikiLCJleHAiOjE2OTUxOTg2NjksIm5iZiI6MTY5NTE5Njg2OSwiaWF0IjoxNjk1MTk2ODY5fQ.wVkEbuC7wC_erdZ5EkHIxJa9go7QPZODoQRQ63tWTDA
 
 {
   "gender": 0,
-  "nick_name": "李民",
-  "real_name": "李民",
+  "nick_name": "李民2",
+  "real_name": "李民2",
   "birthday": "1996-01-08",
   "profile": "我是程序员29"
 }

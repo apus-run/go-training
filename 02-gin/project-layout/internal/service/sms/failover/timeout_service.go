@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync/atomic"
 
-	"geektime-basic-go/webook/internal/service/sms"
+	"project-layout/internal/service/sms"
 )
 
 type timeoutService struct {

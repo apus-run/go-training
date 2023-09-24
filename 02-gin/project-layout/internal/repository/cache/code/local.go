@@ -19,7 +19,6 @@ type codeMemoryCache struct {
 func NewCodeMemoryCache(cache FreecacheClient) CodeCache {
 	return &codeMemoryCache{
 		local: cache,
-		lock:  sync.Mutex{},
 	}
 }
 

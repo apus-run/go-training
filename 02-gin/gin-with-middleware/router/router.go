@@ -1,15 +1,17 @@
 package router
 
 import (
-	"gin-with-middleware/dao/model"
+	"context"
+	ginslog "gin-with-middleware/router/middleware/slog"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
+	"gin-with-middleware/dao/model"
+	"gin-with-middleware/router/middleware/accesslog"
 	"gin-with-middleware/router/middleware/auth"
-	ginslog "gin-with-middleware/router/middleware/slog"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -44,8 +46,11 @@ func Router() http.Handler {
 		IgnorePaths("/login").
 		IgnorePaths("/signup").
 		IgnorePaths("/ping").Build())
-
 	engine.Use(ginslog.NewBuilder(logger).Build())
+	engine.Use(accesslog.NewBuilder(
+		func(ctx context.Context, al accesslog.AccessLog) {
+			logger.Debug("Gin 收到请求", slog.Any("req", al))
+		}).AllowReqBody().AllowRespBody().Build())
 
 	engine.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

@@ -13,7 +13,7 @@ import (
 type User struct {
 	ID uint64 `gorm:"primaryKey,autoIncrement"`
 
-	Name   string `gorm:"type:varchar(20) not null;comment:'用户名'"`
+	Name   string `gorm:"type:varchar(20);not null;comment:'用户名'"`
 	Avatar string `gorm:"type:varchar(200);not null;comment:'头像'"`
 	// 设置邮箱为唯一索引
 	Email    sql.NullString `gorm:"type:varchar(50);unique;not null;comment:'邮箱'"`

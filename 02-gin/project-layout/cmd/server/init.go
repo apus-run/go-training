@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"project-layout/internal/web/handler"
 	"time"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
@@ -18,20 +19,20 @@ import (
 	"project-layout/pkg/ginx/middleware/auth"
 	"project-layout/pkg/ginx/middleware/cors"
 	ratelimitRedisMid "project-layout/pkg/ginx/middleware/ratelimit/redis"
-	"project-layout/pkg/ratelimit_redis"
+	"project-layout/pkg/ratelimit"
 )
 
-func InitWebServer(mdls []gin.HandlerFunc, r ginx.Router) *ginx.HttpServer {
+func InitWebServer(mdls []gin.HandlerFunc, userHdl *handler.UserHandler, oauth2Hdl *handler.OAuth2WechatHandler) *ginx.HttpServer {
 	s := ginx.NewHttpServer(
 		ginx.WithPort("9000"),
 		ginx.WithMode("prod"),
 	)
-	s.Run(mdls, r)
+	s.Run(mdls, userHdl, oauth2Hdl)
 	return s
 }
 
 func InitMiddlewares(client redis.Cmdable) []gin.HandlerFunc {
-	rl := ratelimit_redis.NewRedisSlidingWindowLimiter(client, time.Second, 100)
+	rl := ratelimit.NewRedisSlidingWindowLimiter(client, time.Second, 100)
 	// 注册中间件
 	return []gin.HandlerFunc{
 		cors.NewCORS(

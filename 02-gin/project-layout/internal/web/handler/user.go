@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 
@@ -297,4 +298,18 @@ func (h *UserHandler) UpdateProfile(ctx *ginx.Context) {
 	}
 
 	ctx.JSONOK("用户信息更新成功", nil)
+}
+
+func (h *UserHandler) Load(engine *gin.Engine) {
+	// 用户组
+	// -------------------------------------------------------
+	ug := engine.Group("/v1/user")
+	{
+		ug.POST("/login", ginx.Handle(h.Login))
+		ug.POST("/login_sms/code/send", ginx.Handle(h.SendSMSLoginCode))
+		ug.POST("/login_sms", ginx.Handle(h.LoginSMS))
+		ug.POST("/register", ginx.Handle(h.Register))
+		ug.GET("/profile", ginx.Handle(h.Profile))
+		ug.POST("/update/profile", ginx.Handle(h.UpdateProfile))
+	}
 }

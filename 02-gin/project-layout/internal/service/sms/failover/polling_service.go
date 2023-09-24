@@ -2,11 +2,10 @@ package failover
 
 import (
 	"context"
-	"errors"
 	"log"
 	"sync/atomic"
 
-	"geektime-basic-go/webook/internal/service/sms"
+	"project-layout/internal/service/sms"
 )
 
 type service struct {
@@ -24,13 +23,15 @@ func (s *service) Send(ctx context.Context, tplId string, args []string, numbers
 	for i := idx; i < idx+length; i++ {
 		svc := s.svcs[i%length]
 		err := svc.Send(ctx, tplId, args, numbers...)
-		switch {
+		switch err {
+		case nil:
+			return nil
+		case context.DeadlineExceeded, context.Canceled:
+			// 调用者设置的超时时间到了
+			// 调用者主动取消了
+			return err
 		default:
 			log.Printf("发送失败: %v", svc)
-		case err == nil:
-			return nil
-		case errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled):
-			return err
 		}
 	}
 	return sms.ErrServiceProviderException
@@ -44,5 +45,5 @@ func (s *service) SendV1(ctx context.Context, tplId string, args []string, numbe
 		}
 		log.Printf("发送失败: %v", svc)
 	}
-	return errors.New("发送失败，所有服务商都尝试过了")
+	return sms.ErrServiceProviderException
 }

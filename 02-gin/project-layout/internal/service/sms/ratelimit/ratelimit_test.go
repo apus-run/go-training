@@ -2,39 +2,72 @@ package ratelimit
 
 import (
 	"context"
-	"project-layout/internal/service/sms"
-	"project-layout/pkg/ratelimit_redis"
+	"errors"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+	"project-layout/internal/service/sms"
+
+	smsmocks "project-layout/internal/service/sms/mocks"
+	"project-layout/pkg/ratelimit"
+	limitmocks "project-layout/pkg/ratelimit/mocks"
 )
 
-func TestRatelimitSMSService_Send(t *testing.T) {
-	type fields struct {
-		svc     sms.Service
-		limiter ratelimit_redis.Limiter
-	}
-	type args struct {
-		ctx     context.Context
-		tplId   string
-		args    []string
-		numbers []string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+func TestService_Send(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		mock func(ctrl *gomock.Controller) (sms.Service, ratelimit.Limiter)
+
+		wantErr error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "正常发送",
+			mock: func(ctrl *gomock.Controller) (sms.Service, ratelimit.Limiter) {
+				svc := smsmocks.NewMockService(ctrl)
+				limiter := limitmocks.NewMockLimiter(ctrl)
+				limiter.EXPECT().Limit(gomock.Any(), gomock.Any()).
+					Return(false, nil)
+				svc.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(nil)
+				return svc, limiter
+			},
+		},
+		{
+			name: "触发限流",
+			mock: func(ctrl *gomock.Controller) (sms.Service, ratelimit.Limiter) {
+				svc := smsmocks.NewMockService(ctrl)
+				limiter := limitmocks.NewMockLimiter(ctrl)
+				limiter.EXPECT().Limit(gomock.Any(), gomock.Any()).
+					Return(true, nil)
+				return svc, limiter
+			},
+			wantErr: errors.New("短信服务触发限流"),
+		},
+		{
+			name: "限流器异常",
+			mock: func(ctrl *gomock.Controller) (sms.Service, ratelimit.Limiter) {
+				svc := smsmocks.NewMockService(ctrl)
+				limiter := limitmocks.NewMockLimiter(ctrl)
+				limiter.EXPECT().Limit(gomock.Any(), gomock.Any()).
+					Return(false, errors.New("限流器异常"))
+				return svc, limiter
+			},
+			wantErr: fmt.Errorf("短信服务判断是否限流异常 %w", errors.New("限流器异常")),
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &RatelimitSMSService{
-				svc:     tt.fields.svc,
-				limiter: tt.fields.limiter,
-			}
-			if err := r.Send(tt.args.ctx, tt.args.tplId, tt.args.args, tt.args.numbers...); (err != nil) != tt.wantErr {
-				t.Errorf("Send() error = %v, wantErr %v", err, tt.wantErr)
-			}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			svc, limiter := tc.mock(ctrl)
+			rlss := NewService(svc, limiter)
+			err := rlss.Send(context.Background(), "mytpl", []string{"123"}, "152xxxx")
+			assert.Equal(t, tc.wantErr, err)
 		})
 	}
 }

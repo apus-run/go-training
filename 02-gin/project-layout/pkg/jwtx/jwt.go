@@ -1,6 +1,7 @@
 package jwtx
 
 import (
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -21,10 +22,10 @@ func GenerateToken(options ...Option) (string, error) {
 }
 
 // ParseToken 解析jwt token
-func ParseToken(tokenString, secretKey string) (*CustomClaims, *jwt.Token, error) {
+func ParseToken(tokenString, signingKey string) (*CustomClaims, *jwt.Token, error) {
 	cc := &CustomClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, cc, func(token *jwt.Token) (interface{}, error) {
-		return []byte(secretKey), nil
+		return []byte(signingKey), nil
 	})
 	if err != nil || !token.Valid {
 		return cc, nil, err
@@ -33,4 +34,14 @@ func ParseToken(tokenString, secretKey string) (*CustomClaims, *jwt.Token, error
 		return claims, token, err
 	}
 	return cc, nil, err
+}
+
+func DecodeJWT(tokenString, signingKey string, claims jwt.Claims) (*jwt.Token, error) {
+	// check exp, nbf
+	return jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unknown token method")
+		}
+		return []byte(signingKey), nil
+	})
 }

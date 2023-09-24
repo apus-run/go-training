@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
-	"geektime-basic-go/webook/internal/service/sms"
-	"geektime-basic-go/webook/internal/service/sms/mocks"
+	"project-layout/internal/service/sms"
+	"project-layout/internal/service/sms/mocks"
 )
 
 func TestRespTimeService_Send(t *testing.T) {
@@ -32,7 +32,7 @@ func TestRespTimeService_Send(t *testing.T) {
 		{
 			name: "首次发送",
 			mock: func(ctrl *gomock.Controller, curRespTime time.Duration) sms.Service {
-				svc := mocks.NewMockService(ctrl)
+				svc := smsmocks.NewMockService(ctrl)
 				svc.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Do(func(any, any, any, any) {
 					time.Sleep(curRespTime * time.Millisecond)
 				})
@@ -47,7 +47,7 @@ func TestRespTimeService_Send(t *testing.T) {
 		{
 			name: "平均响应涨幅超过预期",
 			mock: func(ctrl *gomock.Controller, curRespTime time.Duration) sms.Service {
-				svc := mocks.NewMockService(ctrl)
+				svc := smsmocks.NewMockService(ctrl)
 				return svc
 			},
 			before: func(svc sms.Service) {
@@ -66,7 +66,7 @@ func TestRespTimeService_Send(t *testing.T) {
 		{
 			name: "平均响应涨幅没过预期, 且当前窗口小于最大窗口",
 			mock: func(ctrl *gomock.Controller, curRespTime time.Duration) sms.Service {
-				svc := mocks.NewMockService(ctrl)
+				svc := smsmocks.NewMockService(ctrl)
 				svc.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Do(func(any, any, any, any) {
 					time.Sleep(curRespTime * time.Millisecond)
 				})
@@ -87,7 +87,7 @@ func TestRespTimeService_Send(t *testing.T) {
 		{
 			name: "平均响应涨幅没过预期, 且当前窗口达到最大",
 			mock: func(ctrl *gomock.Controller, curRespTime time.Duration) sms.Service {
-				svc := mocks.NewMockService(ctrl)
+				svc := smsmocks.NewMockService(ctrl)
 				svc.EXPECT().Send(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Do(func(any, any, any, any) {
 					time.Sleep(curRespTime * time.Millisecond)
 				})

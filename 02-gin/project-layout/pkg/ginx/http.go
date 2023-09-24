@@ -120,6 +120,6 @@ func (s *HttpServer) registerRoutes(g *gin.Engine, rs ...Router) *HttpServer {
 }
 
 // RegisterOnShutdown 注册shutdown后的回调处理函数，用于清理资源
-func (s *HttpServer) RegisterOnShutdown(f func()) {
-	s.fn = f
+func (s *HttpServer) RegisterOnShutdown(fn func()) {
+	s.fn = fn
 }

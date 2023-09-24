@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
 
 	"project-layout/internal/domain/entity"
 )
@@ -12,6 +13,10 @@ type Comment struct {
 	UserID  uint64 `gorm:"not null;comment:'用户ID'"`
 	TopicID uint64 `gorm:"not null;comment:'主题ID'"`
 	Content string `gorm:"type:varchar(500) not null;comment:'评论内容'"`
+
+	CreatedTime int64 `gorm:"autoCreateTime;not null;comment:'创建时间'"`
+	UpdatedTime int64 `gorm:"autoUpdateTime;not null;comment:'更新时间'"`
+	DeletedTime int64 `gorm:"index;not null;comment:'删除时间'"`
 }
 
 func (c *Comment) TableName() string {
@@ -24,6 +29,8 @@ func (c *Comment) ToEntity() entity.Comment {
 		TopicID: c.TopicID,
 		UserID:  c.UserID,
 		Content: c.Content,
+
+		CreatedTime: time.UnixMilli(c.CreatedTime),
 	}
 }
 

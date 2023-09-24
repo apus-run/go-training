@@ -5,7 +5,7 @@ import (
 )
 
 func InitTables(db *gorm.DB) {
-	err := db.AutoMigrate(&User{})
+	err := db.AutoMigrate(&User{}, &Sms{})
 	if err != nil {
 		panic(err)
 	}

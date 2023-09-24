@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	ratelimit "project-layout/pkg/ratelimit_redis"
+	ratelimit "project-layout/pkg/ratelimit"
 )
 
 type Builder struct {
