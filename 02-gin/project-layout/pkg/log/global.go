@@ -13,30 +13,30 @@ var global = &loggerAppliance{}
 // make logger change will affect all sub-logger.
 type loggerAppliance struct {
 	lock sync.Mutex
-	Logger
+	ZapLogger
 }
 
 func init() {
-	logger := NewLogger()
+	logger := NewZapLogger()
 
 	global.SetLogger(*logger)
 }
 
-func (a *loggerAppliance) SetLogger(in Logger) {
+func (a *loggerAppliance) SetLogger(in ZapLogger) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
-	a.Logger = in
+	a.ZapLogger = in
 }
 
 // SetLogger should be called before any other log call.
 // And it is NOT THREAD SAFE.
-func SetLogger(logger Logger) {
+func SetLogger(logger ZapLogger) {
 	global.SetLogger(logger)
 }
 
 // GetLogger returns global logger appliance as logger in current process.
-func GetLogger() Logger {
-	return global.Logger
+func GetLogger() ZapLogger {
+	return global.ZapLogger
 }
 
 // Info uses the fmt.Sprint to construct and log a message using the DefaultLogger.

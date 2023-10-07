@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"project-layout/internal/domain/entity"
 	"project-layout/internal/repository"
 	"project-layout/pkg/log"
@@ -19,15 +18,19 @@ type UserService interface {
 	FindOrCreate(ctx context.Context, phone string) (*entity.User, error)
 	Profile(ctx context.Context, id uint64) (*entity.User, error)
 	UpdateProfile(ctx context.Context, user entity.User) error
+
+	// FindOrCreateByWechat 查找或者初始化
+	// 随着业务增长，这边可以考虑拆分出去作为一个新的 Service
+	FindOrCreateByWechat(ctx context.Context, info entity.WechatInfo) (*entity.User, error)
 }
 
 type userService struct {
 	repo repository.UserRepository
 
-	log *log.Logger
+	log log.Logger
 }
 
-func NewUserService(repo repository.UserRepository, logger *log.Logger) UserService {
+func NewUserService(repo repository.UserRepository, logger log.Logger) UserService {
 	return &userService{
 		repo: repo,
 		log:  logger,
@@ -111,4 +114,19 @@ func (us *userService) UpdateNonSensitiveProfile(ctx context.Context, user entit
 	user.UpdatePhone("")
 	user.UpdatePassword("")
 	return us.repo.Save(ctx, user)
+}
+
+func (us *userService) FindOrCreateByWechat(ctx context.Context, info entity.WechatInfo) (*entity.User, error) {
+	// 类似于手机号的过程，大部分人只是扫码登录，也就是数据在我们这里是有的
+	user, err := us.repo.FindByWechat(ctx, info.OpenId)
+	if err != repository.ErrUserDataNotFound {
+		return user, err
+	}
+
+	// 执行注册
+	us.repo.Save(ctx, entity.User{
+		WechatInfo: info,
+	})
+
+	return us.repo.FindByWechat(ctx, info.OpenId)
 }

@@ -40,10 +40,10 @@ func FromGinContext(ctx context.Context) (c *gin.Context, ok bool) {
 
 // Response defines HTTP JSON response
 type Response struct {
-	Code    int         `json:"code"`
-	Msg     string      `json:"msg"`
-	Data    interface{} `json:"data"`
-	Details []string    `json:"details,omitempty"`
+	Code    int      `json:"code"`
+	Msg     string   `json:"msg"`
+	Data    any      `json:"data"`
+	Details []string `json:"details,omitempty"`
 }
 
 // JSON returns JSON response

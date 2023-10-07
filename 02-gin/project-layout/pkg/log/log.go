@@ -14,11 +14,30 @@ import (
 
 const LOGGER_KEY = "zapLogger"
 
-type Logger struct {
+type Logger interface {
+	Info(msg string, tags ...zap.Field)
+	Error(msg string, tags ...zap.Field)
+	Debug(msg string, tags ...zap.Field)
+	Warn(msg string, tags ...zap.Field)
+	Fatal(msg string, tags ...zap.Field)
+	Panic(msg string, tags ...zap.Field)
+
+	Infof(format string, args ...any)
+	Errorf(format string, args ...any)
+	Debugf(format string, args ...any)
+	Warnf(format string, args ...any)
+	Fatalf(format string, args ...any)
+	Panicf(format string, args ...any)
+
+	NewContext(ctx *gin.Context, fields ...zapcore.Field)
+	WithContext(ctx *gin.Context) *ZapLogger
+}
+
+type ZapLogger struct {
 	logger *zap.Logger
 }
 
-func NewLogger(opts ...Option) *Logger {
+func NewZapLogger(opts ...Option) *ZapLogger {
 	options := Apply(opts...)
 
 	// 日志文件切割归档
@@ -33,11 +52,11 @@ func NewLogger(opts ...Option) *Logger {
 
 	core := zapcore.NewCore(encoder, writerSyncer, level)
 	if options.mode != "prod" {
-		return &Logger{
+		return &ZapLogger{
 			zap.New(core, zap.Development(), zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel)),
 		}
 	}
-	return &Logger{
+	return &ZapLogger{
 		zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel)),
 	}
 }
@@ -106,82 +125,82 @@ func getLogLevel(logLevel string) zapcore.Level {
 	return *level
 }
 
-func (l *Logger) Info(msg string, tags ...zap.Field) {
+func (l *ZapLogger) Info(msg string, tags ...zap.Field) {
 	l.logger.Info(msg, tags...)
 }
 
-func (l *Logger) Error(msg string, tags ...zap.Field) {
+func (l *ZapLogger) Error(msg string, tags ...zap.Field) {
 	l.logger.Error(msg, tags...)
 }
 
-func (l *Logger) Debug(msg string, tags ...zap.Field) {
+func (l *ZapLogger) Debug(msg string, tags ...zap.Field) {
 	l.logger.Debug(msg, tags...)
 }
 
-func (l *Logger) Warn(msg string, tags ...zap.Field) {
+func (l *ZapLogger) Warn(msg string, tags ...zap.Field) {
 	l.logger.Warn(msg, tags...)
 }
 
-func (l *Logger) Fatal(msg string, tags ...zap.Field) {
+func (l *ZapLogger) Fatal(msg string, tags ...zap.Field) {
 	l.logger.Fatal(msg, tags...)
 }
 
-func (l *Logger) Panic(msg string, tags ...zap.Field) {
+func (l *ZapLogger) Panic(msg string, tags ...zap.Field) {
 	l.logger.Panic(msg, tags...)
 }
 
-func (l *Logger) Debugf(format string, args ...interface{}) {
+func (l *ZapLogger) Debugf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	l.logger.Debug(msg, zap.Any("args", args))
 }
 
-func (l *Logger) Infof(format string, args ...interface{}) {
+func (l *ZapLogger) Infof(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	l.logger.Info(msg, zap.Any("args", args))
 }
 
-func (l *Logger) Warnf(format string, args ...interface{}) {
+func (l *ZapLogger) Warnf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	l.logger.Warn(msg, zap.Any("args", args))
 }
 
-func (l *Logger) Errorf(format string, args ...interface{}) {
+func (l *ZapLogger) Errorf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	l.logger.Error(msg, zap.Any("args", args))
 }
 
-func (l *Logger) Fatalf(format string, args ...interface{}) {
+func (l *ZapLogger) Fatalf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	l.logger.Fatal(msg, zap.Any("args", args))
 }
 
-func (l *Logger) Panicf(format string, args ...interface{}) {
+func (l *ZapLogger) Panicf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	l.logger.Panic(msg, zap.Any("args", args))
 }
 
 // NewContext 给指定的context添加字段
-func (l *Logger) NewContext(ctx *gin.Context, fields ...zapcore.Field) {
+func (l *ZapLogger) NewContext(ctx *gin.Context, fields ...zapcore.Field) {
 	ctx.Set(LOGGER_KEY, l.WithContext(ctx).logger.With(fields...))
 }
 
 // WithContext 从指定的context返回一个zap实例
-func (l *Logger) WithContext(ctx *gin.Context) *Logger {
+func (l *ZapLogger) WithContext(ctx *gin.Context) *ZapLogger {
 	if ctx == nil {
 		return l
 	}
 	zl, _ := ctx.Get(LOGGER_KEY)
 	ctxLogger, ok := zl.(*zap.Logger)
 	if ok {
-		return &Logger{ctxLogger}
+		return &ZapLogger{ctxLogger}
 	}
 	return l
 }
 
-func (l *Logger) Close() {
+func (l *ZapLogger) Close() {
 	_ = l.logger.Sync()
 }
 
-func (l *Logger) Sync() {
+func (l *ZapLogger) Sync() {
 	_ = l.logger.Sync()
 }

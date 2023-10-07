@@ -11,7 +11,7 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	userHandler := handler.NewUserHandler()
+	userHandler := handler.NewUserHandler(nil)
 	// create web
 	router := Router(userHandler)
 

@@ -17,6 +17,12 @@ type Builder struct {
 	allowReqBody  bool
 	allowRespBody bool
 
+	// http response body 的 max length; request URL 的 max length.
+	maxLength int
+
+	// 忽略指定路由的日志打印
+	ignoreRoutes map[string]struct{}
+
 	logFunc func(ctx context.Context, al AccessLog)
 }
 
@@ -25,6 +31,14 @@ func NewBuilder(fn func(ctx context.Context, al AccessLog)) *Builder {
 		// 默认不打印
 		allowReqBody:  false,
 		allowRespBody: false,
+
+		maxLength: 1 << 20, // 1 MiB
+
+		ignoreRoutes: map[string]struct{}{
+			"/ping":   {},
+			"/pong":   {},
+			"/health": {},
+		},
 
 		logFunc: fn,
 	}
@@ -40,10 +54,29 @@ func (b *Builder) AllowRespBody() *Builder {
 	return b
 }
 
+func (b *Builder) SetMaxLength(maxLength int) *Builder {
+	b.maxLength = maxLength
+	return b
+}
+
+func (b *Builder) IgnoreRoutes(routes ...string) *Builder {
+	for _, route := range routes {
+		b.ignoreRoutes[route] = struct{}{}
+	}
+
+	return b
+}
+
 func (b *Builder) Build() gin.HandlerFunc {
 	pid := strconv.Itoa(os.Getpid())
 	return func(c *gin.Context) {
 		start := time.Now()
+
+		// ignore printing of the specified route
+		if _, ok := b.ignoreRoutes[c.Request.URL.Path]; ok {
+			c.Next()
+			return
+		}
 
 		host := c.Request.Host
 		split := strings.Split(host, ":")
@@ -51,8 +84,8 @@ func (b *Builder) Build() gin.HandlerFunc {
 		// URL 有可能会很长, 保护起来
 		url := c.Request.URL
 		urlStr := url.String()
-		if len(urlStr) > 1024 {
-			urlStr = urlStr[:1024]
+		if len(urlStr) > b.maxLength {
+			urlStr = urlStr[:b.maxLength]
 		}
 		al := AccessLog{
 			PID:      pid,
@@ -78,8 +111,8 @@ func (b *Builder) Build() gin.HandlerFunc {
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 			// 防止body内容过大, 保护起来
-			if len(body) > 1024 {
-				body = body[:1024]
+			if len(body) > b.maxLength {
+				body = body[:b.maxLength]
 			}
 			al.ReqBody = string(body)
 		}

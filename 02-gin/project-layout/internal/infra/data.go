@@ -37,7 +37,7 @@ func (c *Data) CloseDB() error {
 }
 
 // NewData return a new Data
-func NewData(db *gorm.DB, rdb redis.Cmdable, log *log.Logger) (*Data, func()) {
+func NewData(db *gorm.DB, rdb redis.Cmdable, log log.Logger) (*Data, func()) {
 	data := &Data{
 		DB:  db,
 		RDB: rdb,

@@ -23,6 +23,8 @@ type UserDAO interface {
 	FindByID(ctx context.Context, id uint64) (*model.User, error)
 	FindByPhone(ctx context.Context, phone string) (*model.User, error)
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
+
+	FindByWechat(ctx context.Context, openId string) (*model.User, error)
 }
 
 type userDAO struct {
@@ -81,5 +83,11 @@ func (u *userDAO) FindByPhone(ctx context.Context, phone string) (*model.User, e
 func (u *userDAO) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	var userModel model.User
 	err := u.data.DB.WithContext(ctx).First(&userModel, "email = ?", email).Error
+	return &userModel, err
+}
+
+func (u *userDAO) FindByWechat(ctx context.Context, openId string) (*model.User, error) {
+	var userModel model.User
+	err := u.data.DB.WithContext(ctx).First(&userModel, "wechat_open_id = ?", openId).Error
 	return &userModel, err
 }

@@ -27,6 +27,10 @@ type UserRepository interface {
 	FindUserPage(ctx context.Context, name string, page int64, size int64) ([]*entity.User, uint, bool, error)
 	FindByPhone(ctx context.Context, phone string) (*entity.User, error)
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
+
+	// FindByWechat 暂时可以认为按照 openId来查询
+	// 将来可能需要按照 unionId 来查询
+	FindByWechat(ctx context.Context, openId string) (*entity.User, error)
 }
 
 // userRepository 使用了缓存
@@ -34,10 +38,10 @@ type userRepository struct {
 	dao   dao.UserDAO
 	cache user.UserCache
 
-	log *log.Logger
+	log log.Logger
 }
 
-func NewUserRepository(dao dao.UserDAO, cache user.UserCache, logger *log.Logger) UserRepository {
+func NewUserRepository(dao dao.UserDAO, cache user.UserCache, logger log.Logger) UserRepository {
 	return &userRepository{
 		dao:   dao,
 		cache: cache,
@@ -201,7 +205,7 @@ func (ur *userRepository) FindByPhone(ctx context.Context, phone string) (*entit
 		return &entity.User{}, err
 	}
 
-	return &newEntity, nil
+	return &newEntity, err
 }
 
 // FindByEmail 根据邮箱查询用户信息
@@ -216,5 +220,19 @@ func (ur *userRepository) FindByEmail(ctx context.Context, email string) (*entit
 		return &entity.User{}, err
 	}
 
-	return &newEntity, nil
+	return &newEntity, err
+}
+
+func (ur *userRepository) FindByWechat(ctx context.Context, openId string) (*entity.User, error) {
+	userModel, err := ur.dao.FindByWechat(ctx, openId)
+	if err != nil {
+		return &entity.User{}, err
+	}
+	// Map fresh record's data into Entity
+	newEntity := userModel.ToEntity()
+	if err != nil {
+		return &entity.User{}, err
+	}
+
+	return &newEntity, err
 }

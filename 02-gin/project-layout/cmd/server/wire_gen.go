@@ -23,7 +23,7 @@ import (
 // Injectors from wire.go:
 
 // runApp init web application.
-func runApp(logger *log.Logger) (*ginx.HttpServer, func(), error) {
+func runApp(logger log.Logger) (*ginx.HttpServer, func(), error) {
 	cmdable := infra.NewRDB()
 	v := InitMiddlewares(cmdable)
 	db := infra.NewDB()

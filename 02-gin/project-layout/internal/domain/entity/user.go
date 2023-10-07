@@ -27,7 +27,18 @@ type User struct {
 	UpdatedTime time.Time  // 更新时间
 	DeletedTime *time.Time // 删除时间
 
+	// 不要使用组合，因为你将来可能还有 DingDingInfo、GithubInfo 之类的
+	WechatInfo WechatInfo
+
 	ChangeTracker
+}
+
+// WechatInfo 微信的授权信息
+type WechatInfo struct {
+	// OpenId 是应用内唯一
+	OpenId string
+	// UnionId 是整个公司账号内唯一
+	UnionId string
 }
 
 // 实体的赋值方法

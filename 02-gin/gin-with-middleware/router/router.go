@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	ginslog "gin-with-middleware/router/middleware/slog"
 	"log"
 	"log/slog"
 	"net/http"
@@ -46,11 +45,15 @@ func Router() http.Handler {
 		IgnorePaths("/login").
 		IgnorePaths("/signup").
 		IgnorePaths("/ping").Build())
-	engine.Use(ginslog.NewBuilder(logger).Build())
+	// engine.Use(ginslog.NewBuilder(logger).Build())
 	engine.Use(accesslog.NewBuilder(
 		func(ctx context.Context, al accesslog.AccessLog) {
 			logger.Debug("Gin 收到请求", slog.Any("req", al))
-		}).AllowReqBody().AllowRespBody().Build())
+		}).
+		AllowReqBody().
+		AllowRespBody().
+		IgnoreRoutes("/login").
+		Build())
 
 	engine.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

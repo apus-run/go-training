@@ -27,14 +27,14 @@ type UserHandler struct {
 	// 扩展 Handler
 	ojwt.Handler
 
-	log *log.Logger
+	log log.Logger
 }
 
 func NewUserHandler(
 	svc service.UserService,
 	codeSvc service.CodeService,
 	jwthdl ojwt.Handler,
-	logger *log.Logger) *UserHandler {
+	logger log.Logger) *UserHandler {
 	return &UserHandler{
 		svc:     svc,
 		codeSvc: codeSvc,

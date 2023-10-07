@@ -27,7 +27,7 @@ func main() {
 	c.Load()
 	c.Watch()
 
-	logger := log.NewLogger(
+	logger := log.NewZapLogger(
 		log.WithEncoding("json"),
 		log.WithFilename("../logs/server.log"),
 	)

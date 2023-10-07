@@ -27,6 +27,11 @@ type User struct {
 	Birthday sql.NullInt64 `gorm:"comment:'生日'"`
 	Profile  string        `gorm:"type:varchar(255);comment:'个人简介'"`
 
+	// 微信有关数据。有些公司会尝试把这些数据分离出去做一个单独的表
+	// 我们还没到这个地步
+	WechatOpenId  sql.NullString `gorm:"type=varchar(1024),unique"`
+	WechatUnionId sql.NullString `gorm:"type=varchar(1024)"`
+
 	CreatedTime int64 `gorm:"autoCreateTime;not null;comment:'创建时间'"`
 	UpdatedTime int64 `gorm:"autoUpdateTime;not null;comment:'更新时间'"`
 	DeletedTime int64 `gorm:"index;not null;comment:'删除时间'"`
@@ -44,17 +49,23 @@ func (u *User) ToEntity() entity.User {
 	}
 
 	return entity.User{
-		ID:          u.ID,
-		Name:        u.Name,
-		Avatar:      u.Avatar,
-		Email:       u.Email.String,
-		Password:    u.Password,
-		Phone:       u.Phone.String,
-		Gender:      u.Gender,
-		NickName:    u.NickName,
-		RealName:    u.RealName,
-		Birthday:    birthday,
-		Profile:     u.Profile,
+		ID:       u.ID,
+		Name:     u.Name,
+		Avatar:   u.Avatar,
+		Email:    u.Email.String,
+		Password: u.Password,
+		Phone:    u.Phone.String,
+		Gender:   u.Gender,
+		NickName: u.NickName,
+		RealName: u.RealName,
+		Birthday: birthday,
+		Profile:  u.Profile,
+
+		WechatInfo: entity.WechatInfo{
+			OpenId:  u.WechatOpenId.String,
+			UnionId: u.WechatUnionId.String,
+		},
+
 		CreatedTime: time.UnixMilli(u.CreatedTime),
 	}
 }
